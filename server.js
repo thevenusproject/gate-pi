@@ -13,7 +13,7 @@ async function main() {
   await gpiop.setup(33, gpio.DIR_LOW).catch(e => console.warn(e));
   await gpiop.setup(35, gpio.DIR_LOW).catch(e => console.warn(e));
   await gpiop.setup(37, gpio.DIR_LOW).catch(e => console.warn(e));
-  cycle().catch(e => console.warn(e));
+  // cycle().catch(e => console.warn(e));
 }
 
 async function cycle() {
