@@ -7,12 +7,12 @@ dotenv_config()
 
 const {promise: gpiop} = gpio;
 // Relay GPIOs - 31 33 35 37 (physical pin #)
-gpio.setup(31, gpio.DIR_OUT);
+gpio.setup('31', gpio.DIR_LOW);
 
 async function main() {
   _.forEach(new Array(5), (some, idx) => {
     setTimeout(() => {
-      gpio.write(31, false)
+      gpio.write('31', false)
       console.log('Pin 6 off')
     }, idx * 1000 );
     setTimeout(() => {
