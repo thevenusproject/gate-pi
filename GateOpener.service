@@ -1,0 +1,13 @@
+[Unit]
+Description=GateOpener
+After=multi-user.target
+
+[Service]
+Environment=NODE_PORT=3001
+Type=simple
+User=root
+ExecStart=/usr/bin/npm start --prefix /root/dev/gate-pi/  > /root/dev/gate-pi/logs/GateOpener.log 2>&1
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
