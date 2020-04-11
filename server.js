@@ -11,8 +11,14 @@ gpio.setup(6, gpio.DIR_OUT);
 
 async function main() {
   _.forEach(new Array(5), (some, idx) => {
-    setTimeout(() => gpio.write(6, false), idx * 2000 );
-    setTimeout(() => gpio.write(6, true), (idx + 1) * 2000);
+    setTimeout(() => {
+      gpio.write(6, false)
+      console.log('Pin 6 off')
+    }, idx * 1000 );
+    setTimeout(() => {
+      console.log('Pin 6 on')
+      gpio.write(6, true)
+    }, idx * 1000 + 500);
   })
 }
 main().catch(e => console.warn(e))
