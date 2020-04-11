@@ -19,11 +19,11 @@ async function main() {
 async function cycle() {
   _.forEach(new Array(5), (some, idx) => {
     setTimeout(() => {
-      gpio.write(31, false)
-      console.log('Pin 6 off')
+      gpio.write(31, true)
+      console.log('Pin 6 on')
       setTimeout(() => {
-        console.log('Pin 6 on')
-        gpio.write(31, true)
+        console.log('Pin 6 off')
+        gpio.write(31, false)
       }, 1000);
     }, idx * 2000 );
   })
