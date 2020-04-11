@@ -10,6 +10,13 @@ const {promise: gpiop} = gpio;
 gpiop.setup(31, gpio.DIR_LOW).then(() => main()).catch(e => console.warn(e));
 
 async function main() {
+  await gpiop.setup(33, gpio.DIR_LOW).catch(e => console.warn(e));
+  await gpiop.setup(35, gpio.DIR_LOW).catch(e => console.warn(e));
+  await gpiop.setup(37, gpio.DIR_LOW).catch(e => console.warn(e));
+  cycle().catch(e => console.warn(e));
+}
+
+async function cycle() {
   _.forEach(new Array(5), (some, idx) => {
     setTimeout(() => {
       gpio.write(31, false)
