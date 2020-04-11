@@ -7,7 +7,7 @@ dotenv_config()
 
 const {promise: gpiop} = gpio;
 // Relay GPIOs - 31 33 35 37 (physical pin #)
-gpiop.setup('31', gpio.DIR_LOW, () => main()).catch(e => console.warn(e));
+gpiop.setup('31', gpio.DIR_LOW).then(() => main()).catch(e => console.warn(e));
 
 async function main() {
   _.forEach(new Array(5), (some, idx) => {
