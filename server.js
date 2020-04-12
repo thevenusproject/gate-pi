@@ -44,7 +44,7 @@ v3.on('write', async function(params) {
 });
 
 function writePinFromBlynk({pin, params}) {
-  const value = _.get(param,'[0]') !== "1";
+  const value = _.get(params,'[0]') !== "1";
   gpiop.write(pin, value).catch(e => console.log(`error setting pin ${pin}`, e))
 }
 
