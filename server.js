@@ -7,23 +7,23 @@ dotenv_config()
 
 const {promise: gpiop} = gpio;
 // Relay GPIOs - 31 33 35 37 (physical pin #)
-gpiop.setup(31, gpio.DIR_LOW).then(() => main()).catch(e => console.warn(e));
+gpiop.setup(31, gpio.DIR_HIGH).then(() => main()).catch(e => console.warn(e));
 
 async function main() {
-  await gpiop.setup(33, gpio.DIR_LOW).catch(e => console.warn(e));
-  await gpiop.setup(35, gpio.DIR_LOW).catch(e => console.warn(e));
+  await gpiop.setup(33, gpio.DIR_HIGH).catch(e => console.warn(e));
+  await gpiop.setup(35, gpio.DIR_HIGH).catch(e => console.warn(e));
   await gpiop.setup(37, gpio.DIR_LOW).catch(e => console.warn(e));
-  // cycle().catch(e => console.warn(e));
+  cycle().catch(e => console.warn(e));
 }
 
 async function cycle() {
   _.forEach(new Array(5), (some, idx) => {
     setTimeout(() => {
-      gpio.write(31, true)
+      gpio.write(37, true)
       console.log('Pin 6 on')
       setTimeout(() => {
         console.log('Pin 6 off')
-        gpio.write(31, false)
+        gpio.write(37, false)
       }, 1000);
     }, idx * 2000 );
   })
