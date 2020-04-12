@@ -20,6 +20,7 @@ const {promise: gpiop} = gpio;
 // gpiop.setup(31, gpio.DIR_HIGH).then(() => main()).catch(e => console.warn(e));
 
 async function setupPhysicalPins() {
+  console.log('setupPhysicalPins')
   await gpiop.setup(31, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open
   await gpiop.setup(33, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open
   await gpiop.setup(35, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open
@@ -28,6 +29,7 @@ async function setupPhysicalPins() {
 }
 
 async function setupBlynkPins() {
+  console.log('setupBlynkPins')
 
   v1.on('write', async function (params) {
     // Cycle gate
@@ -47,6 +49,7 @@ async function setupBlynkPins() {
 
 function writePinFromBlynk({pin, params}) {
   const value = _.get(params,'[0]') !== "1";
+  console.log('writePinFromBlynk',pin, params )
   gpiop.write(pin, value).catch(e => console.log(`error setting pin ${pin}`, e))
 }
 
