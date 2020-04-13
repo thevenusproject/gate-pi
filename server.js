@@ -23,7 +23,7 @@ const {promise: gpiop} = gpio;
 
 async function setupPhysicalPins() {
   console.log('setupPhysicalPins')
-  await gpiop.setup(15, gpio.DIR_IN).catch(e => console.warn(e)); // Open
+  await gpiop.setup(16, gpio.DIR_IN).catch(e => console.warn(e)); // Open
   await gpiop.setup(31, gpio.DIR_HIGH).catch(e => console.warn(e)); // Cycle gate
   await gpiop.setup(33, gpio.DIR_HIGH).catch(e => console.warn(e)); // Disable button
   await gpiop.setup(35, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open gate
@@ -51,7 +51,7 @@ async function setupBlynkPins() {
 
   v4.on('read', async function (params) {
     // read external sensor
-    readPinFromBlynk({pin: 15, params}).catch()
+    readPinFromBlynk({pin: 16, params}).catch()
   });
 
   blynkRPiReboot.on('write', function(param) {  // Watches for V10 Button
@@ -104,9 +104,9 @@ async function cycleRelay37Demo() {
 async function externalSensorPolling() {
   while (true) {
     await sleep(1000)
-    const sensorIsOpen = await gpiop.read(15)
-    console.log('sensorIsOpen', sensorIsOpen)
-    if (!sensorIsOpen) {
+    const sensorIsClosed = await gpiop.read(16)
+    console.log('sensorIsOpen', sensorIsClosed)
+    if (sensorIsClosed) {
       console.log('Internal sensor triggered. Opening gate')
       await gpiop.write(35, false)
       await sleep(700)
