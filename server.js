@@ -24,7 +24,7 @@ async function setupPhysicalPins() {
   await gpiop.setup(31, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open
   await gpiop.setup(33, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open
   await gpiop.setup(35, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open
-  await gpiop.setup(37, gpio.DIR_LOW).catch(e => console.warn(e)); // Closed
+  await gpiop.setup(37, gpio.DIR_HIGH).catch(e => console.warn(e)); // Closed
   // cycleRelay37Demo().catch(e => console.warn(e));
 }
 
