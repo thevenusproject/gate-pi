@@ -104,9 +104,9 @@ async function cycleRelay37Demo() {
 async function externalSensorPolling() {
   while (true) {
     await sleep(1000)
-    const sensorIsClosed = await gpiop.read(16)
-    console.log('sensorIsOpen', sensorIsClosed)
-    if (sensorIsClosed) {
+    const sensorIsOpen = await gpiop.read(16)
+    console.log('sensorIsOpen', sensorIsOpen)
+    if (!sensorIsOpen) {
       console.log('Internal sensor triggered. Opening gate')
       await gpiop.write(35, false)
       await sleep(700)
