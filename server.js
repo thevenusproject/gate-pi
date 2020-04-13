@@ -14,6 +14,8 @@ var blynk = new Blynk.Blynk(AUTH);
 const v1 = new blynk.VirtualPin(1);
 const v2 = new blynk.VirtualPin(2);
 const v3 = new blynk.VirtualPin(3);
+const v4 = new blynk.VirtualPin(4);
+const blynkRPiReboot = new blynk.VirtualPin(20);  // Setup Reboot Button
 
 const {promise: gpiop} = gpio;
 // Relay GPIOs - 31 33 35 37 (physical pin #)
@@ -21,10 +23,11 @@ const {promise: gpiop} = gpio;
 
 async function setupPhysicalPins() {
   console.log('setupPhysicalPins')
-  await gpiop.setup(31, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open
-  await gpiop.setup(33, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open
-  await gpiop.setup(35, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open
-  await gpiop.setup(37, gpio.DIR_HIGH).catch(e => console.warn(e)); // Closed
+  await gpiop.setup(17, gpio.DIR_IN).catch(e => console.warn(e)); // Open
+  await gpiop.setup(31, gpio.DIR_HIGH).catch(e => console.warn(e)); // Cycle gate
+  await gpiop.setup(33, gpio.DIR_HIGH).catch(e => console.warn(e)); // Disable button
+  await gpiop.setup(35, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open gate
+  await gpiop.setup(37, gpio.DIR_HIGH).catch(e => console.warn(e)); // Open
   // cycleRelay37Demo().catch(e => console.warn(e));
 }
 
@@ -45,6 +48,17 @@ async function setupBlynkPins() {
     // Open gate
     writePinFromBlynk({pin: 35, params})
   });
+
+  v4.on('read', async function (params) {
+    // read external sensor
+    readPinFromBlynk({pin: 17, params}).catch()
+  });
+
+  blynkRPiReboot.on('write', function(param) {  // Watches for V10 Button
+    if (param == 1) {  // Runs the CLI command if the button on V10 is pressed
+      process.exec('sudo /sbin/shutdown -r', function (msg) { console.log(msg) });
+    }
+  });
 }
 
 function writePinFromBlynk({pin, params}) {
@@ -53,9 +67,16 @@ function writePinFromBlynk({pin, params}) {
   gpiop.write(pin, value).catch(e => console.log(`error setting pin ${pin}`, e))
 }
 
+async function readPinFromBlynk({pin}) {
+  console.log('readPinFromBlynk',pin)
+  const value = await gpiop.read(pin).catch(e => console.log(`error setting pin ${pin}`, e))
+  blynk.virtualWrite(4, value);
+}
+
 async function setup() {
   await setupPhysicalPins()
   await setupBlynkPins()
+  externalSensorPolling()
 }
 
 setup().catch(e => console.log('err in pins setup', e));
@@ -78,4 +99,17 @@ async function cycleRelay37Demo() {
       }, 1000);
     }, idx * 2000 );
   })
+}
+
+async function externalSensorPolling() {
+  while (true) {
+    await sleep(1000)
+    const sensorIsOpen = await gpiop.read(17)
+    if (!sensorIsOpen) {
+      console.log('Internal sensor triggered. Opening gate')
+      await gpiop.write(35, false)
+      await sleep(700)
+      await gpiop.write(35, true)
+    }
+  }
 }
