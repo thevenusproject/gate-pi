@@ -128,8 +128,9 @@ async function setupTelegram() {
     ctx.reply('Welcome!')
   })
   telegraf.use(async (ctx, next) => {
-    const chat_id = _.get(ctx, 'update.message');
-    if (chat_id == )
+    const chat_id = _.get(ctx, 'update.message.chat.id') + '';
+    if (chat_id === MY_CHAT_ID || chat_id === GATE_GROUP_CHAT_ID) next()
+    else throw new Error(`Telegram Message from unauthorized chat! Chat ID ${chat_id}`)
   })
   telegraf.command('open', async (ctx) => {
     await openGate()
