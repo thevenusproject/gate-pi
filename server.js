@@ -5,6 +5,7 @@ import Blynk from 'blynk-library';
 import Telegraf, {Telegram} from 'telegraf';
 dotenv_config()
 const telegram = new Telegram(process.env.TELEGRAM_TOKEN)
+const telegraf = new Telegraf(process.env.TELEGRAM_TOKEN)
 // console.log(`Your port is ${process.env.PORT}`); // 3000
 var blynk = new Blynk.Blynk(process.env.BLYNK_AUTH_TOKEN);
 // For Local Server:
@@ -43,11 +44,11 @@ async function writeRPiPin({pin, value}) {
 }
 
 async function cycleGate() {
-  return momentaryRelaySet({pin: CYCLE_PIN, value: true})
+  return momentaryRelaySet({pin: CYCLE_PIN, value: false})
 }
 
 async function openGate() {
-  return momentaryRelaySet({pin: OPEN_PIN, value: true})
+  return momentaryRelaySet({pin: OPEN_PIN, value: false})
 }
 
 
@@ -87,7 +88,7 @@ async function readPinFromBlynk({pin}) {
 async function setup() {
   await setupPhysicalPins()
   await setupBlynkPins()
-  externalSensorPolling()
+  // externalSensorPolling()
   setupTelegram()
 }
 
@@ -105,12 +106,11 @@ async function cycleRelayDemo(pin) {
 async function externalSensorPolling() {
   while (true) {
     await sleep(1000)
-    const sensorIsOpen = await gpiop.read(16)
+    const sensorIsOpen = await gpiop.read(EXTERNAL_SENSOR_SAMPLE_PIN)
     if (!sensorIsOpen) {
-      console.log('Internal sensor triggered. Opening gate')
-      await gpiop.write(35, false)
-      await sleep(700)
-      await gpiop.write(35, true)
+      console.log('External sensor triggered. Opening gate')
+      await openGate()
+      await sendTelegramGroupMessage('External sensor triggered, gate is opening')
     }
   }
 }
@@ -123,22 +123,22 @@ async function momentaryRelaySet({value, pin}) {
 
 // Telegram
 async function setupTelegram() {
-  telegram.start((ctx) => {
+  telegraf.start((ctx) => {
     ctx.reply('Welcome!')
   })
-  telegram.command('open', async (ctx) => {
+  telegraf.command('open', async (ctx) => {
     await openGate()
     ctx.reply('Gate is opening')
   })
-  telegram.command('cycle', async (ctx) => {
+  telegraf.command('cycle', async (ctx) => {
     await cycleGate()
     ctx.reply('Gate cycling')
   })
-  telegram.launch()
+  telegraf.launch()
 }
 
 async function sendTelegramGroupMessage(message) {
-  await telegram.sendMessage(process.env.MY_CHAT_ID,message);
+  await telegram.sendMessage(process.env.GATE_GROUP_ID, message);
 }
 //
 
