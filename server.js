@@ -89,7 +89,7 @@ async function readPinFromBlynk({pin}) {
 async function setup() {
   await setupPhysicalPins()
   await setupBlynkPins()
-  // externalSensorPolling()
+  externalSensorPolling()
   setupTelegram()
 }
 
