@@ -4,10 +4,11 @@ import {config as dotenv_config} from 'dotenv'
 import Blynk from 'blynk-library';
 import Telegraf, {Telegram} from 'telegraf';
 dotenv_config()
-const telegram = new Telegram(process.env.TELEGRAM_TOKEN)
-const telegraf = new Telegraf(process.env.TELEGRAM_TOKEN)
 // console.log(`Your port is ${process.env.PORT}`); // 3000
-var blynk = new Blynk.Blynk(process.env.BLYNK_AUTH_TOKEN);
+const {MY_CHAT_ID, GATE_GROUP_CHAT_ID, BLYNK_AUTH_TOKEN, TELEGRAM_TOKEN} = process.env;
+const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messages
+const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation
+var blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN);
 // For Local Server:
 // const blynk = new Blynk.Blynk(AUTH, options = {
 //   connector : new Blynk.TcpClient( options = { addr: "xxx.xxx.xxx.xxx", port: 8080 } )  // This takes all the info and directs the connection to you Local Server.
@@ -126,6 +127,10 @@ async function setupTelegram() {
   telegraf.start((ctx) => {
     ctx.reply('Welcome!')
   })
+  telegraf.use(async (ctx, next) => {
+    const chat_id = _.get(ctx, 'update.message');
+    if (chat_id == )
+  })
   telegraf.command('open', async (ctx) => {
     await openGate()
     ctx.reply('Gate is opening')
@@ -138,7 +143,7 @@ async function setupTelegram() {
 }
 
 async function sendTelegramGroupMessage(message) {
-  await telegram.sendMessage(process.env.GATE_GROUP_ID, message);
+  await telegram.sendMessage(GATE_GROUP_CHAT_ID, message);
 }
 //
 
