@@ -35,5 +35,8 @@
       "es2015",
       "stage-2"
     ]
+  },
+  "devDependencies": {
+    "prettier": "^2.0.4"
   }
 }
