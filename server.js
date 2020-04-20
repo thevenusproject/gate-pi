@@ -131,15 +131,21 @@ async function cycleRelayDemo(pin) {
 }
 
 async function externalSensorPolling() {
+  let counter = 0;
   while (true) {
-    await sleep(1000);
+    await sleep(500);
     const sensorIsOpen = await gpiop.read(EXTERNAL_SENSOR_SAMPLE_PIN);
     if (!sensorIsOpen) {
-      console.log("External sensor triggered. Opening gate");
-      await openGate();
-      await sendTelegramGroupMessage(
-        "External sensor triggered, gate is opening"
-      );
+      if (counter >= 1) {
+        console.log("External sensor triggered. Opening gate");
+        counter = 0;
+        await openGate();
+        await sendTelegramGroupMessage(
+          "External sensor triggered, gate is opening"
+        );
+      } else {
+        counter += 1
+      }
     }
   }
 }
