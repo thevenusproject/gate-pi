@@ -132,17 +132,25 @@ async function cycleRelayDemo(pin) {
 
 async function externalSensorPolling() {
   let counter = 0;
+  const COUNT_TRIGGER = 2;
   while (true) {
     await sleep(500);
     const sensorIsOpen = await gpiop.read(EXTERNAL_SENSOR_SAMPLE_PIN);
     if (!sensorIsOpen) {
-      if (counter >= 1) {
+      if (counter >= COUNT_TRIGGER) {
         console.log("External sensor triggered. Opening gate");
         counter = 0;
         await openGate();
-        await sendTelegramGroupMessage(
-          "External sensor triggered, gate is opening"
-        );
+        const day = (new Date()).getDate();
+        let response = pickRandomFromArray([
+          "Ext. sensor triggered, opening gate",
+          "Ext. sensor triggered, maybe a new package?? So exciting..",
+          "Ext. sensor triggered, Roxanne checking for mail again?",
+          "Ext. sensor triggered, is it Monday already?",
+        ])
+        if (day === 0) response = "Ext. sensor triggered, tomorrow is garbage day!"
+        if (day === 6) response = "Ext. sensor triggered, it could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus"
+        await sendTelegramGroupMessage(response);
       } else {
         counter += 1
       }
@@ -182,9 +190,10 @@ async function setupTelegram() {
       "I'm still alive. Pretty boring here though...",
       "There's a package for you here! Not really, just want some company, wink wink",
       "Hmm hmm, are YOU still alive?",
-      "I think raccoons are planning an attack. If I'll be silent for hours, something is probably wrong"
+      "I think raccoons are planning an attack. If I'm silent for hours, something is probably wrong",
+      "Corcen here!"
     ]
-    const response = responses[Math.floor(Math.random()*(responses.length))]
+    const response = pickRandomFromArray(responses)
     ctx.reply(response);
   });
   telegraf.launch();
@@ -203,6 +212,11 @@ async function sleep(ms) {
 function killProcess(msg) {
   console.log('killing process', msg)
   process.kill(process.pid, 'SIGTERM')
+}
+
+function pickRandomFromArray(arr) {
+  if (!arr || !Array.isArray(arr)) console.warn('invalid arr in pickRandomFromArray')
+  else return arr[Math.floor(Math.random()*(arr.length))]
 }
 
 setup().catch((e) => console.log("err in setup", e));
