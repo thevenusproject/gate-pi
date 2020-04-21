@@ -150,7 +150,7 @@ async function externalSensorPolling() {
         ])
         if (day === 0) response = "Ext. sensor triggered, tomorrow is garbage day!"
         if (day === 6) response = "Ext. sensor triggered, it could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus"
-        await sendTelegramGroupMessage(response);
+        // await sendTelegramGroupMessage(response);
       } else {
         counter += 1
       }
@@ -190,13 +190,20 @@ async function setupTelegram() {
       "I'm still alive. Pretty boring here though...",
       "There's a package for you here! Not really, just want some company, wink wink",
       "Hmm hmm, are YOU still alive?",
-      "I think raccoons are planning an attack. If I'm silent for hours, something is probably wrong",
+      "I think raccoons are planning a coup. If I'm silent for hours, something is probably wrong",
       "Corcen here!"
     ]
     const response = pickRandomFromArray(responses)
     ctx.reply(response);
   });
-  telegraf.launch();
+  await telegraf.launch();
+  let response = pickRandomFromArray([
+    "I'm back online, how long was I out? Minutes? Days? Years???",
+    "Reporting back online",
+    "Corcen here, working as usual",
+    "A lovely day to be back online again!",
+  ])
+  await sendTelegramGroupMessage(response);
 }
 
 async function sendTelegramGroupMessage(message) {
