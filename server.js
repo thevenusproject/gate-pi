@@ -135,8 +135,8 @@ async function externalSensorPolling() {
   const COUNT_TRIGGER = 2;
   while (true) {
     await sleep(500);
-    const sensorIsOpen = await gpiop.read(EXTERNAL_SENSOR_SAMPLE_PIN);
-    if (!sensorIsOpen) {
+    const sensorIsBlocked = await gpiop.read(EXTERNAL_SENSOR_SAMPLE_PIN);
+    if (sensorIsBlocked) {
       if (counter >= COUNT_TRIGGER) {
         console.log("External sensor triggered. Opening gate");
         counter = 0;
