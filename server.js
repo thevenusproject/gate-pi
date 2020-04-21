@@ -178,7 +178,6 @@ async function setupTelegram() {
     ctx.reply("Gate cycling");
   });
   telegraf.command("status", async (ctx) => {
-    await cycleGate();
     const responses = [
       "I'm still alive. Pretty boring here though...",
       "There's a package for you here! Not really, just want some company, wink wink",
