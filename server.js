@@ -184,7 +184,7 @@ async function setupTelegram() {
       "Hmm hmm, are YOU still alive?",
       "I think raccoons are planning an attack. If I'll be silent for hours, something is probably wrong"
     ]
-    const response = responses[Math.floor(Math.random()*(responses.length - 1))]
+    const response = responses[Math.floor(Math.random()*(responses.length))]
     ctx.reply(response);
   });
   telegraf.launch();
