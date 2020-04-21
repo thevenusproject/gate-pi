@@ -16,11 +16,11 @@ const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messa
 const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation
 var blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN);
 
-process.on("SIGTERM", () => {
-  server.close(() => {
-    console.log("Process terminated");
-  });
-});
+// process.on("SIGTERM", () => {
+// server.close(() => {
+//   console.log("Process terminated");
+// });
+// });
 
 // For Local Server:
 // const blynk = new Blynk.Blynk(AUTH, options = {
@@ -170,12 +170,13 @@ async function setupTelegram() {
     ctx.reply("Welcome!");
   });
   telegraf.use(async (ctx, next) => {
-    const chat_id = _.get(ctx, "update.message.chat.id") + "";
-    if (chat_id === MY_CHAT_ID || chat_id === GATE_GROUP_CHAT_ID) next();
-    else
-      throw new Error(
+    const chat_id = _.get(ctx, "update.message.chat.id")  + "";
+    if (chat_id && (chat_id === MY_CHAT_ID || chat_id === GATE_GROUP_CHAT_ID)) next();
+    else if (chat_id)
+      console.warn(
         `Telegram Message from unauthorized chat! Chat ID ${chat_id}`
       );
+    else console.log('Message irrelevant to the bot')
   });
   telegraf.command("open", async (ctx) => {
     await openGate();
@@ -195,6 +196,11 @@ async function setupTelegram() {
     ]
     const response = pickRandomFromArray(responses)
     ctx.reply(response);
+  });
+  telegraf.command("echo_to_group", ctx => {
+    const text = _.get(ctx, 'update.message.text') || '';
+    const message = text.replace('/echo_to_group ', '')
+    if (message) sendTelegramGroupMessage(message);
   });
   await telegraf.launch();
   let response = pickRandomFromArray([
