@@ -179,7 +179,14 @@ async function setupTelegram() {
   });
   telegraf.command("status", async (ctx) => {
     await cycleGate();
-    ctx.reply("I'm still alive. Pretty boring here though...");
+    const responses = [
+      "I'm still alive. Pretty boring here though...",
+      "There's a package for you here! Not really, just want some company, wink wink",
+      "Hmm hmm, are YOU still alive?",
+      "I think raccoons are planning an attack. If I'll be silent for hours, something is probably wrong"
+    ]
+    const response = responses[Math.ceil(Math.random()*(responses.length - 1))]
+    ctx.reply(response);
   });
   telegraf.launch();
 }
