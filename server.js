@@ -91,7 +91,7 @@ async function setupBlynkPins() {
   });
   blynkRPiReboot.on("write", function (param) {
     // Watches for V10 Button
-    if (param == 1) {
+    if (param === 1) {
       // Runs the CLI command if the button on V10 is pressed
       process.exec("sudo /sbin/shutdown -r", function (msg) {
         console.log(msg);
@@ -116,7 +116,7 @@ async function setup() {
   await setupPhysicalPins().catch(e => killProcess(e));
   await setupBlynkPins().catch(e => killProcess(e));
   externalSensorPolling().catch(e => killProcess(e));
-  setupTelegram().catch(e => killProcess(e));;
+  setupTelegram().catch(e => killProcess(e));
 }
 
 async function cycleRelayDemo(pin) {
@@ -176,6 +176,10 @@ async function setupTelegram() {
   telegraf.command("cycle", async (ctx) => {
     await cycleGate();
     ctx.reply("Gate cycling");
+  });
+  telegraf.command("status", async (ctx) => {
+    await cycleGate();
+    ctx.reply("I'm still alive. Pretty boring here though...");
   });
   telegraf.launch();
 }
