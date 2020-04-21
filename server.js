@@ -150,7 +150,7 @@ async function externalSensorPolling() {
         ])
         if (day === 0) response = "Ext. sensor triggered, tomorrow is garbage day!"
         if (day === 6) response = "Ext. sensor triggered, it could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus"
-        // await sendTelegramGroupMessage(response);
+        await sendTelegramGroupMessage(response);
       } else {
         counter += 1
       }
