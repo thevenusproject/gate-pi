@@ -133,24 +133,29 @@ async function cycleRelayDemo(pin) {
 async function externalSensorPolling() {
   let counter = 0;
   const COUNT_TRIGGER = 2;
+  let cooldownNotifications = 0;
   while (true) {
     await sleep(500);
     const sensorIsBlocked = await gpiop.read(EXTERNAL_SENSOR_SAMPLE_PIN);
     if (sensorIsBlocked) {
+      console.log("Ext. sensor triggered");
       if (counter >= COUNT_TRIGGER) {
-        console.log("External sensor triggered. Opening gate");
+        console.log("Ext. sensor triggered. Opening gate");
         counter = 0;
         await openGate();
         const day = (new Date()).getDate();
         let response = pickRandomFromArray([
           "Ext. sensor triggered, opening gate",
           "Ext. sensor triggered, maybe a new package?? So exciting..",
-          "Ext. sensor triggered, Roxanne checking for mail again?",
-          "Ext. sensor triggered, is it Monday already?",
+          "Ext. sensor triggered, is Rox checking for mail again?",
         ])
         if (day === 0) response = "Ext. sensor triggered, tomorrow is garbage day!"
         if (day === 6) response = "Ext. sensor triggered, it could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus"
-        await sendTelegramGroupMessage(response);
+        if (cooldownNotifications <= 0) {
+          cooldownNotifications = 120;
+          await sendTelegramGroupMessage(response);
+        }
+        else --cooldownNotifications;
       } else {
         counter += 1
       }
