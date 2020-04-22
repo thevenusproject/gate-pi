@@ -138,7 +138,7 @@ async function externalSensorPolling() {
     await sleep(500);
     const sensorIsBlocked = await gpiop.read(EXTERNAL_SENSOR_SAMPLE_PIN);
     if (sensorIsBlocked) {
-      console.log("Ext. sensor triggered");
+      console.log("Ext. sensor triggered. counter ", counter);
       if (counter >= COUNT_TRIGGER) {
         console.log("Ext. sensor triggered. Opening gate");
         counter = 0;
@@ -155,7 +155,10 @@ async function externalSensorPolling() {
           cooldownNotifications = 120;
           await sendTelegramGroupMessage(response);
         }
-        else --cooldownNotifications;
+        else {
+          --cooldownNotifications;
+          console.log('cooldownNotifications', cooldownNotifications)
+        }
       } else {
         counter += 1
       }
