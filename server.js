@@ -155,13 +155,13 @@ async function externalSensorPolling() {
           cooldownNotifications = 120;
           await sendTelegramGroupMessage(response);
         }
-        else {
-          --cooldownNotifications;
-          console.log('cooldownNotifications', cooldownNotifications)
-        }
+        console.log('cooldownNotifications', cooldownNotifications)
       } else {
         counter += 1
       }
+    }
+    if (cooldownNotifications > 0) {
+      -- cooldownNotifications
     }
   }
 }
