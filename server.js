@@ -132,7 +132,7 @@ async function cycleRelayDemo(pin) {
 
 async function externalSensorPolling() {
   let counter = 0;
-  const COUNT_TRIGGER = 2;
+  const COUNT_TRIGGER = 1;
   let cooldownNotifications = 0;
   while (true) {
     await sleep(500);
