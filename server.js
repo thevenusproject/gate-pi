@@ -15,7 +15,7 @@ const {
 const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messages
 const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation
 var blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN);
-
+let shouldNotifyOnExtTrigger = true;
 // process.on("SIGTERM", () => {
 // server.close(() => {
 //   console.log("Process terminated");
@@ -36,6 +36,7 @@ const v1 = new blynk.VirtualPin(1);
 const v2 = new blynk.VirtualPin(2);
 const v3 = new blynk.VirtualPin(3);
 const v4 = new blynk.VirtualPin(4);
+const v5 = new blynk.VirtualPin(5);
 const blynkRPiReboot = new blynk.VirtualPin(20); // Setup Reboot Button
 
 const { promise: gpiop } = gpio;
@@ -89,6 +90,14 @@ async function setupBlynkPins() {
     // read external sensor
     readPinFromBlynk({ pin: EXTERNAL_SENSOR_SAMPLE_PIN, params }).catch();
   });
+  v5.on("read", async function (params) {
+    // read shouldNotifyOnExtTrigger
+    blynk.virtualWrite(5, shouldNotifyOnExtTrigger);
+  });
+  v5.on("write", async function (params) {
+    // write shouldNotifyOnExtTrigger
+    shouldNotifyOnExtTrigger = _.get(params, "[0]") !== "0";
+  });
   blynkRPiReboot.on("write", function (param) {
     // Watches for V10 Button
     if (param === 1) {
@@ -102,7 +111,7 @@ async function setupBlynkPins() {
 
 function writePinFromBlynk({ pin, params }) {
   const value = _.get(params, "[0]") !== "1";
-  writeRPiPin({ pin, value });
+  writeRPiPin({ pin, value }).catch();
 }
 
 async function readPinFromBlynk({ pin }) {
@@ -143,15 +152,15 @@ async function externalSensorPolling() {
         console.log("Ext. sensor triggered. Opening gate");
         counter = 0;
         await openGate();
-        const day = (new Date()).getDate();
+        const day = (new Date()).getDay();
         let response = pickRandomFromArray([
           "Ext. sensor triggered, opening gate",
           "Ext. sensor triggered, maybe a new package?? So exciting..",
           "Ext. sensor triggered, is Rox checking for mail again?",
         ])
-        if (day === 0) response = "Ext. sensor triggered, tomorrow is garbage day!"
-        if (day === 6) response = "Ext. sensor triggered, it could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus"
-        if (cooldownNotifications <= 0) {
+        if (day === 0) response = "Ext. sensor triggered. Tomorrow is garbage day!"
+        if (day === 6) response = "Ext. sensor triggered. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus"
+        if (cooldownNotifications <= 0 && shouldNotifyOnExtTrigger) {
           cooldownNotifications = 120;
           await sendTelegramGroupMessage(response);
         }
