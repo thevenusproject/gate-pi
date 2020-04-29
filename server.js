@@ -203,6 +203,10 @@ async function setupTelegram() {
     await cycleGate();
     ctx.reply("Gate cycling");
   });
+  telegraf.command("notify_on_ext_trigger", async (ctx) => {
+    shouldNotifyOnExtTrigger = !shouldNotifyOnExtTrigger
+    ctx.reply(`Notifications on external trigger are ${shouldNotifyOnExtTrigger ? 'on' : 'off'}`);
+  });
   telegraf.command("status", async (ctx) => {
     const responses = [
       "I'm still alive. Pretty boring here though...",
