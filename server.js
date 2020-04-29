@@ -230,11 +230,15 @@ async function setupTelegram() {
     "Corcen here, working as usual",
     "A lovely day to be back online again!",
   ])
-  await sendTelegramGroupMessage(response);
+  await sendTelegramAdminMessage(response);
 }
 
 async function sendTelegramGroupMessage(message) {
   await telegram.sendMessage(GATE_GROUP_CHAT_ID, message);
+}
+
+async function sendTelegramAdminMessage(message) {
+  await telegram.sendMessage(MY_CHAT_ID, message);
 }
 
 //
