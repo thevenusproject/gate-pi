@@ -86,9 +86,9 @@ async function setupBlynkPins() {
     // Open gate
     writePinFromBlynk({ pin: OPEN_PIN, params });
   });
-  v4.on("read", async function (params) {
+  v4.on("read", async function () {
     // read external sensor
-    readPinFromBlynk({ pin: EXTERNAL_SENSOR_SAMPLE_PIN, params }).catch();
+    readPinFromBlynk({ gpioPin: EXTERNAL_SENSOR_SAMPLE_PIN, blynkPin: 4 }).catch();
   });
   v5.on("read", async function (params) {
     // read shouldNotifyOnExtTrigger
@@ -114,11 +114,11 @@ function writePinFromBlynk({ pin, params }) {
   writeRPiPin({ pin, value }).catch();
 }
 
-async function readPinFromBlynk({ pin }) {
+async function readPinFromBlynk({ gpioPin, blynkPin }) {
   const value = await gpiop
-    .read(pin)
+    .read(gpioPin)
     .catch((e) => console.log(`error setting pin ${pin}`, e));
-  blynk.virtualWrite(4, value);
+  blynk.virtualWrite(blynkPin, value);
 }
 
 async function setup() {
@@ -154,9 +154,9 @@ async function externalSensorPolling() {
         await openGate();
         const day = (new Date()).getDay();
         let response = pickRandomFromArray([
-          "Ext. sensor triggered, opening gate",
-          "Ext. sensor triggered, maybe a new package?? So exciting..",
-          "Ext. sensor triggered, is Rox checking for mail again?",
+          "Ext. sensor triggered. Opening gate",
+          // "Ext. sensor triggered, maybe a new package?? So exciting..",
+          // "Ext. sensor triggered, is Rox checking for mail again?",
         ])
         if (day === 0) response = "Ext. sensor triggered. Tomorrow is garbage day!"
         if (day === 6) response = "Ext. sensor triggered. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus"
