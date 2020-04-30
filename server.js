@@ -162,7 +162,7 @@ async function externalSensorPolling() {
         if (day === 6) response = "Ext. sensor triggered. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus"
         if (cooldownNotifications <= 0 && shouldNotifyOnExtTrigger) {
           cooldownNotifications = 120;
-          await sendTelegramGroupMessage(response);
+          await sendTelegramAdminMessage(response);
         }
         console.log('cooldownNotifications', cooldownNotifications)
       } else {
