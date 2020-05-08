@@ -127,7 +127,7 @@ async function setup() {
   await setupPhysicalPins().catch(e => killProcess(e));
   await setupBlynkPins().catch(e => killProcess(e));
   externalSensorPolling().catch(e => killProcess(e));
-  setupTelegram().catch(e => killProcess(e));
+  setupTelegram().catch(e => console.log(e));
 }
 
 async function cycleRelayDemo(pin) {
