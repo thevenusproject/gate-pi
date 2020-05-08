@@ -142,37 +142,40 @@ async function cycleRelayDemo(pin) {
 }
 
 async function externalSensorPolling() {
-  let counter = 0;
+  const TIME_STEP = 0.5; // seconds
   const COUNT_TRIGGER = 1;
-  let cooldownNotifications = 0;
+  const COOL_DOWN_TIME = 120; // seconds
+  let triggerCounter = 0;
+  let coolDownNotificationsCounter = 0;
   while (true) {
-    await sleep(500);
+    await sleep(TIME_STEP * 1000);
     const sensorIsBlocked = await gpiop.read(EXTERNAL_SENSOR_SAMPLE_PIN);
     if (sensorIsBlocked) {
-      console.log("Ext. sensor triggered. counter ", counter);
-      if (counter >= COUNT_TRIGGER) {
-        console.log("Ext. sensor triggered. Opening gate");
-        counter = 0;
+      // console.log("Ext. sensor triggered. counter ", triggerCounter);
+      if (triggerCounter >= COUNT_TRIGGER) {
+        // console.log("Ext. sensor triggered. Opening gate");
+        triggerCounter = 0;
         await openGate();
         const day = (new Date()).getDay();
         let response = pickRandomFromArray([
-          "Ext. sensor triggered. Opening gate",
+          "External sensor. Opening gate",
           // "Ext. sensor triggered, maybe a new package?? So exciting..",
           // "Ext. sensor triggered, is Rox checking for mail again?",
         ])
-        if (day === 0) response = "Ext. sensor triggered. Tomorrow is garbage day!"
-        if (day === 6) response = "Ext. sensor triggered. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus"
-        if (cooldownNotifications <= 0 && shouldNotifyOnExtTrigger) {
-          cooldownNotifications = 120;
-          await sendTelegramAdminMessage(response);
+        if (day === 0) response = "External sensor. Tomorrow is garbage day!"
+        if (day === 6) response = "External sensor. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus"
+        if (coolDownNotificationsCounter <= 0) {
+          coolDownNotificationsCounter = 120;
+          if (shouldNotifyOnExtTrigger) await sendTelegramGroupMessage(response)
+          else await sendTelegramAdminMessage(response)
         }
-        console.log('cooldownNotifications', cooldownNotifications)
+        // console.log('coolDownNotificationsCounter', coolDownNotificationsCounter)
       } else {
-        counter += 1
+        triggerCounter += 1
       }
     }
-    if (cooldownNotifications > 0) {
-      -- cooldownNotifications
+    if (coolDownNotificationsCounter > 0) {
+      -- coolDownNotificationsCounter
     }
   }
 }
