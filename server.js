@@ -3,6 +3,7 @@ import _ from "lodash";
 import { config as dotenv_config } from "dotenv";
 import Blynk from "blynk-library";
 import Telegraf, { Telegram } from "telegraf";
+import {exec} from 'child_process';
 
 dotenv_config();
 // console.log(`Your port is ${process.env.PORT}`); // 3000
@@ -102,8 +103,9 @@ async function setupBlynkPins() {
     // Watches for V10 Button
     if (param === 1) {
       // Runs the CLI command if the button on V10 is pressed
-      process.exec("sudo /sbin/shutdown -r", function (msg) {
-        console.log(msg);
+      exec("sudo /sbin/reboot",  function  (err, stdout, stderr) {
+        if (err) console.log(stderr)
+        else console.log(stdout);
       });
     }
   });
