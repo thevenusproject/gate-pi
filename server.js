@@ -119,7 +119,7 @@ function writePinFromBlynk({ pin, params }) {
 async function readPinFromBlynk({ gpioPin, blynkPin }) {
   const value = await gpiop
     .read(gpioPin)
-    .catch((e) => console.log(`error setting pin ${pin}`, e));
+    .catch((e) => console.log(`error setting pin ${gpioPin}`, e));
   blynk.virtualWrite(blynkPin, value);
 }
 
