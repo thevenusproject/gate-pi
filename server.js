@@ -272,7 +272,7 @@ async function sendTelegramGroupMessage(message) {
   await telegram.sendMessage(GATE_GROUP_CHAT_ID, message);
 }
 async function sendTelegramGroupImage(imagePath) {
-  await telegram.sendPhoto(chatId, { source: imagePath }, {caption: INTERCOM_STREAM_URL});
+  await telegram.sendPhoto(GATE_GROUP_CHAT_ID, { source: imagePath }, {caption: INTERCOM_STREAM_URL});
 }
 
 async function sendTelegramAdminMessage(message) {
@@ -280,7 +280,7 @@ async function sendTelegramAdminMessage(message) {
 }
 
 async function sendTelegramAdminImage(imagePath) {
-  await telegram.sendPhoto(chatId, { source: imagePath }, {caption: INTERCOM_STREAM_URL});
+  await telegram.sendPhoto(MY_CHAT_ID, { source: imagePath }, {caption: INTERCOM_STREAM_URL});
 }
 
 async function intercomCameraSnapshot() {
