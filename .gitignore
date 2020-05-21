@@ -106,4 +106,4 @@ dist
 .tern-port
 
 # application
-intercom_images
+intercom_images/*
