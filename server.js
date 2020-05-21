@@ -318,7 +318,7 @@ async function downloadImage({ url }) {
 }
 
 async function deleteImage(imagePath) {
-  fs.unlinkSync(imagePath);
+  // fs.unlinkSync(imagePath); // TODO clean images folder
 }
 
 async function sleep(ms) {
