@@ -300,8 +300,8 @@ async function intercomCameraSnapshot() {
 }
 
 async function downloadImage({ url }) {
-  // const path = `${__dirname}/intercom_images/${Date.now()}.jpg`;
-  const imagePath = Path.resolve(__dirname, "intercom_images", `${Date.now()}.jpg`);
+  // const path = `${__dirname}/intercom_photos/${Date.now()}.jpg`;
+  const imagePath = Path.resolve(__dirname, "intercom_photos", `${Date.now()}.jpg`);
   const writer = fs.createWriteStream(imagePath);
   const response = await axios({
     url,
