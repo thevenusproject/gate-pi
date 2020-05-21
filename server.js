@@ -9,6 +9,8 @@ import fs from "fs";
 
 const INTERCOM_SNAPSHOT_URL =
   "http://gate-intercom.local:3438/stream/snapshot.jpeg";
+const INTERCOM_STREAM_URL =
+  "http://gate-intercom.local:3438/stream";
 dotenv_config();
 // console.log(`Your port is ${process.env.PORT}`); // 3000
 const {
@@ -225,7 +227,7 @@ async function setupTelegram() {
   });
   telegraf.command("intercom_snapshot", async (ctx) => {
     const imagePath = await downloadImage({url: INTERCOM_SNAPSHOT_URL});
-    await ctx.replyWithPhoto({source: imagePath});
+    await ctx.replyWithPhoto({source: imagePath}, {caption: INTERCOM_STREAM_URL});
     await deleteImage(imagePath);
   });
   telegraf.command("notify_on_ext_trigger", async (ctx) => {
@@ -266,7 +268,7 @@ async function sendTelegramGroupMessage(message) {
   await telegram.sendMessage(GATE_GROUP_CHAT_ID, message);
 }
 async function sendTelegramGroupImage(imagePath) {
-  await telegram.sendPhoto(chatId, { source: imagePath });
+  await telegram.sendPhoto(chatId, { source: imagePath }, {caption: INTERCOM_STREAM_URL});
 }
 
 async function sendTelegramAdminMessage(message) {
@@ -274,7 +276,7 @@ async function sendTelegramAdminMessage(message) {
 }
 
 async function sendTelegramAdminImage(imagePath) {
-  await telegram.sendPhoto(chatId, { source: imagePath });
+  await telegram.sendPhoto(chatId, { source: imagePath }, {caption: INTERCOM_STREAM_URL});
 }
 
 async function intercomCameraSnapshot() {
