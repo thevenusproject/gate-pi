@@ -6,7 +6,7 @@ import Telegraf, { Telegram } from "telegraf";
 import { exec } from "child_process";
 import axios from "axios";
 import fs from "fs";
-import path from "path";
+import Path from "path";
 
 const INTERCOM_SNAPSHOT_URL =
   "http://gate-intercom.local:3438/stream/snapshot.jpeg";
@@ -228,7 +228,10 @@ async function setupTelegram() {
   });
   telegraf.command("intercom_snapshot", async (ctx) => {
     const imagePath = await downloadImage({url: INTERCOM_SNAPSHOT_URL});
-    await ctx.replyWithPhoto({source: imagePath}, {caption: INTERCOM_STREAM_URL});
+    await ctx.replyWithPhoto({source: imagePath}, {caption: INTERCOM_STREAM_URL}).catch(e => {
+      deleteImage(imagePath)
+      throw e;
+    });
     await deleteImage(imagePath);
   });
   telegraf.command("notify_on_ext_trigger", async (ctx) => {
@@ -282,15 +285,24 @@ async function sendTelegramAdminImage(imagePath) {
 
 async function intercomCameraSnapshot() {
   const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL });
-  if (shouldNotifyOnExtTrigger) await sendTelegramGroupImage(imagePath)
-  else await sendTelegramAdminImage(imagePath)
+  if (shouldNotifyOnExtTrigger) {
+    await sendTelegramGroupImage(imagePath).catch(e => {
+      deleteImage(imagePath)
+      throw e
+    })
+  } else {
+    await sendTelegramAdminImage(imagePath).catch(e => {
+      deleteImage(imagePath)
+      throw e
+    })
+  }
   await deleteImage(imagePath)
 }
 
 async function downloadImage({ url }) {
   // const path = `${__dirname}/intercom_images/${Date.now()}.jpg`;
-  const path = path.resolve(__dirname, "intercom_images", `${Date.now()}.jpg`);
-  const writer = fs.createWriteStream(path);
+  const imagePath = Path.resolve(__dirname, "intercom_images", `${Date.now()}.jpg`);
+  const writer = fs.createWriteStream(imagePath);
   const response = await axios({
     url,
     method: "GET",
@@ -299,7 +311,7 @@ async function downloadImage({ url }) {
   response.data.pipe(writer);
   return new Promise((resolve, reject) => {
     writer.on("finish", (res) => {
-      resolve(path);
+      resolve(imagePath);
     });
     writer.on("error", reject);
   });
