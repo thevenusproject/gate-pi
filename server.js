@@ -6,6 +6,7 @@ import Telegraf, { Telegram } from "telegraf";
 import { exec } from "child_process";
 import axios from "axios";
 import fs from "fs";
+import path from "path";
 
 const INTERCOM_SNAPSHOT_URL =
   "http://gate-intercom.local:3438/stream/snapshot.jpeg";
