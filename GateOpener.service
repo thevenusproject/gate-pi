@@ -6,8 +6,20 @@ After=multi-user.target
 Environment=NODE_PORT=3001
 Type=simple
 User=root
-ExecStart=/usr/bin/npm start --prefix /root/dev/gate-pi/ > /root/dev/gate-pi/logs/GateOpener.log 2>&1
-Restart=on-failure
+#WorkingDirectory=/root/dev/gate-pi/
+ExecStart=/usr/bin/npm start --prefix /root/dev/gate-pi/ >> /root/dev/gate-pi/logs/GateOpener.log 2>&1
+# Restart service after 10 seconds if node service crashes
+RestartSec=10
+# Output to syslog
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=nodejs-gate-opener
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
+
+
+
+
+

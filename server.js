@@ -3,8 +3,12 @@ import _ from "lodash";
 import { config as dotenv_config } from "dotenv";
 import Blynk from "blynk-library";
 import Telegraf, { Telegram } from "telegraf";
-import {exec} from 'child_process';
+import { exec } from "child_process";
+import axios from "axios";
+import fs from "fs";
 
+const INTERCOM_SNAPSHOT_URL =
+  "http://gate-intercom.local:3438/stream/snapshot.jpeg";
 dotenv_config();
 // console.log(`Your port is ${process.env.PORT}`); // 3000
 const {
@@ -89,7 +93,10 @@ async function setupBlynkPins() {
   });
   v4.on("read", async function () {
     // read external sensor
-    readPinFromBlynk({ gpioPin: EXTERNAL_SENSOR_SAMPLE_PIN, blynkPin: 4 }).catch();
+    readPinFromBlynk({
+      gpioPin: EXTERNAL_SENSOR_SAMPLE_PIN,
+      blynkPin: 4,
+    }).catch();
   });
   v5.on("read", async function (params) {
     // read shouldNotifyOnExtTrigger
@@ -103,8 +110,8 @@ async function setupBlynkPins() {
     // Watches for V10 Button
     if (param === 1) {
       // Runs the CLI command if the button on V10 is pressed
-      exec("sudo /sbin/reboot",  function  (err, stdout, stderr) {
-        if (err) console.log(stderr)
+      exec("sudo /sbin/reboot", function (err, stdout, stderr) {
+        if (err) console.log(stderr);
         else console.log(stdout);
       });
     }
@@ -124,10 +131,10 @@ async function readPinFromBlynk({ gpioPin, blynkPin }) {
 }
 
 async function setup() {
-  await setupPhysicalPins().catch(e => killProcess(e));
-  await setupBlynkPins().catch(e => killProcess(e));
-  externalSensorPolling().catch(e => killProcess(e));
-  setupTelegram().catch(e => console.log(e));
+  await setupPhysicalPins().catch((e) => killProcess(e));
+  await setupBlynkPins().catch((e) => killProcess(e));
+  await setupTelegram().catch((e) => killProcess(e));
+  externalSensorPolling().catch((e) => killProcess(e));
 }
 
 async function cycleRelayDemo(pin) {
@@ -156,26 +163,33 @@ async function externalSensorPolling() {
         // console.log("Ext. sensor triggered. Opening gate");
         triggerCounter = 0;
         await openGate();
-        const day = (new Date()).getDay();
+        const day = new Date().getDay();
         let response = pickRandomFromArray([
           "External sensor. Opening gate",
           // "Ext. sensor triggered, maybe a new package?? So exciting..",
           // "Ext. sensor triggered, is Rox checking for mail again?",
-        ])
-        if (day === 0) response = "External sensor. Tomorrow is garbage day!"
-        if (day === 6) response = "External sensor. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus"
+        ]);
+        if (day === 0) response = "External sensor. Tomorrow is garbage day!";
+        if (day === 6)
+          response =
+            "External sensor. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus";
         if (coolDownNotificationsCounter <= 0) {
           coolDownNotificationsCounter = 120;
-          if (shouldNotifyOnExtTrigger) await sendTelegramGroupMessage(response)
-          else await sendTelegramAdminMessage(response)
+          if (shouldNotifyOnExtTrigger) {
+            await sendTelegramGroupMessage(response);
+            await intercomCameraSnapshot();
+          } else {
+            await sendTelegramAdminMessage(response);
+            await intercomCameraSnapshot();
+          }
         }
         // console.log('coolDownNotificationsCounter', coolDownNotificationsCounter)
       } else {
-        triggerCounter += 1
+        triggerCounter += 1;
       }
     }
     if (coolDownNotificationsCounter > 0) {
-      -- coolDownNotificationsCounter
+      --coolDownNotificationsCounter;
     }
   }
 }
@@ -192,13 +206,14 @@ async function setupTelegram() {
     ctx.reply("Welcome!");
   });
   telegraf.use(async (ctx, next) => {
-    const chat_id = _.get(ctx, "update.message.chat.id")  + "";
-    if (chat_id && (chat_id === MY_CHAT_ID || chat_id === GATE_GROUP_CHAT_ID)) next();
+    const chat_id = _.get(ctx, "update.message.chat.id") + "";
+    if (chat_id && (chat_id === MY_CHAT_ID || chat_id === GATE_GROUP_CHAT_ID))
+      next();
     else if (chat_id)
       console.warn(
         `Telegram Message from unauthorized chat! Chat ID ${chat_id}`
       );
-    else console.log('Message irrelevant to the bot')
+    else console.log("Message irrelevant to the bot");
   });
   telegraf.command("open", async (ctx) => {
     await openGate();
@@ -208,9 +223,18 @@ async function setupTelegram() {
     await cycleGate();
     ctx.reply("Gate cycling");
   });
+  telegraf.command("intercom_snapshot", async (ctx) => {
+    const imagePath = await downloadImage({url: INTERCOM_SNAPSHOT_URL});
+    await ctx.replyWithPhoto({source: imagePath});
+    await deleteImage(imagePath);
+  });
   telegraf.command("notify_on_ext_trigger", async (ctx) => {
-    shouldNotifyOnExtTrigger = !shouldNotifyOnExtTrigger
-    ctx.reply(`Notifications on external trigger are ${shouldNotifyOnExtTrigger ? 'on' : 'off'}`);
+    shouldNotifyOnExtTrigger = !shouldNotifyOnExtTrigger;
+    ctx.reply(
+      `Notifications on external trigger are ${
+        shouldNotifyOnExtTrigger ? "on" : "off"
+      }`
+    );
   });
   telegraf.command("status", async (ctx) => {
     const responses = [
@@ -218,14 +242,14 @@ async function setupTelegram() {
       "There's a package for you here! Not really, just want some company, wink wink",
       "Hmm hmm, are YOU still alive?",
       "I think raccoons are planning a coup. If I'm silent for hours, something is probably wrong",
-      "Corcen here!"
-    ]
-    const response = pickRandomFromArray(responses)
+      "Corcen here!",
+    ];
+    const response = pickRandomFromArray(responses);
     ctx.reply(response);
   });
-  telegraf.command("echo_to_group", ctx => {
-    const text = _.get(ctx, 'update.message.text') || '';
-    const message = text.replace('/echo_to_group ', '')
+  telegraf.command("echo_to_group", (ctx) => {
+    const text = _.get(ctx, "update.message.text") || "";
+    const message = text.replace("/echo_to_group ", "");
     if (message) sendTelegramGroupMessage(message);
   });
   await telegraf.launch();
@@ -234,32 +258,67 @@ async function setupTelegram() {
     "Reporting back online",
     "Corcen here, working as usual",
     "A lovely day to be back online again!",
-  ])
+  ]);
   await sendTelegramAdminMessage(response);
 }
 
 async function sendTelegramGroupMessage(message) {
   await telegram.sendMessage(GATE_GROUP_CHAT_ID, message);
 }
+async function sendTelegramGroupImage(imagePath) {
+  await telegram.sendPhoto(chatId, { source: imagePath });
+}
 
 async function sendTelegramAdminMessage(message) {
   await telegram.sendMessage(MY_CHAT_ID, message);
 }
 
-//
+async function sendTelegramAdminImage(imagePath) {
+  await telegram.sendPhoto(chatId, { source: imagePath });
+}
+
+async function intercomCameraSnapshot() {
+  const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL });
+  if (shouldNotifyOnExtTrigger) await sendTelegramGroupImage(imagePath)
+  else await sendTelegramAdminImage(imagePath)
+  await deleteImage(imagePath)
+}
+
+async function downloadImage({ url }) {
+  // const path = `${__dirname}/intercom_images/${Date.now()}.jpg`;
+  const path = path.resolve(__dirname, "intercom_images", `${Date.now()}.jpg`);
+  const writer = fs.createWriteStream(path);
+  const response = await axios({
+    url,
+    method: "GET",
+    responseType: "stream",
+  });
+  response.data.pipe(writer);
+  return new Promise((resolve, reject) => {
+    writer.on("finish", (res) => {
+      resolve(path);
+    });
+    writer.on("error", reject);
+  });
+}
+
+async function deleteImage(imagePath) {
+  fs.unlinkSync(imagePath);
+}
 
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function killProcess(msg) {
-  console.log('killing process', msg)
-  process.kill(process.pid, 'SIGTERM')
+  console.log("killing process", msg);
+  process.kill(process.pid, "SIGTERM");
 }
 
 function pickRandomFromArray(arr) {
-  if (!arr || !Array.isArray(arr)) console.warn('invalid arr in pickRandomFromArray')
-  else return arr[Math.floor(Math.random()*(arr.length))]
+  if (!arr || !Array.isArray(arr))
+    console.warn("invalid arr in pickRandomFromArray");
+  else return arr[Math.floor(Math.random() * arr.length)];
 }
 
 setup().catch((e) => console.log("err in setup", e));
