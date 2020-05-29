@@ -24,6 +24,7 @@ const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messa
 const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation
 var blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN);
 let shouldNotifyOnExtTrigger = true;
+let extTriggerEnabled = true;
 // process.on("SIGTERM", () => {
 // server.close(() => {
 //   console.log("Process terminated");
@@ -45,6 +46,7 @@ const v2 = new blynk.VirtualPin(2);
 const v3 = new blynk.VirtualPin(3);
 const v4 = new blynk.VirtualPin(4);
 const v5 = new blynk.VirtualPin(5);
+const v6 = new blynk.VirtualPin(6);
 const blynkRPiReboot = new blynk.VirtualPin(20); // Setup Reboot Button
 
 const { promise: gpiop } = gpio;
@@ -109,6 +111,14 @@ async function setupBlynkPins() {
     // write shouldNotifyOnExtTrigger
     shouldNotifyOnExtTrigger = _.get(params, "[0]") !== "0";
   });
+  v6.on("read", async function (params) {
+    // read shouldNotifyOnExtTrigger
+    blynk.virtualWrite(5, extTriggerEnabled);
+  });
+  v6.on("write", async function (params) {
+    // write shouldNotifyOnExtTrigger
+    extTriggerEnabled = _.get(params, "[0]") !== "0";
+  });
   blynkRPiReboot.on("write", function (param) {
     // Watches for V10 Button
     if (param === 1) {
@@ -165,7 +175,7 @@ async function externalSensorPolling() {
       if (triggerCounter >= COUNT_TRIGGER) {
         // console.log("Ext. sensor triggered. Opening gate");
         triggerCounter = 0;
-        await openGate();
+        if (extTriggerEnabled) await openGate();
         const day = new Date().getDay();
         let response = pickRandomFromArray([
           "External sensor. Opening gate",
@@ -173,16 +183,16 @@ async function externalSensorPolling() {
           // "Ext. sensor triggered, is Rox checking for mail again?",
         ]);
         if (day === 0) response = "External sensor. Tomorrow is garbage day!";
-        if (day === 6)
-          response =
-            "External sensor. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus";
+        // if (day === 6)
+        //   response =
+        //     "External sensor. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus";
         if (coolDownNotificationsCounter <= 0) {
           coolDownNotificationsCounter = 120;
-          if (shouldNotifyOnExtTrigger) {
+          if (extTriggerEnabled && shouldNotifyOnExtTrigger) {
             await sendTelegramGroupMessage(response);
             await intercomCameraSnapshot();
           } else {
-            await sendTelegramAdminMessage(response);
+            await sendTelegramAdminMessage(extTriggerEnabled ? response : 'Ext sensor was triggered but opening is disabled');
             await intercomCameraSnapshot();
           }
         }
@@ -242,6 +252,14 @@ async function setupTelegram() {
       }`
     );
   });
+  telegraf.command("toggle_opening_on_external_trigger", async (ctx) => {
+    shouldNotifyOnExtTrigger = !shouldNotifyOnExtTrigger;
+    ctx.reply(
+      `Opening the gate on external trigger is ${
+        extTriggerEnabled ? "enabled" : "disabled"
+      }`
+    );
+  });
   telegraf.command("status", async (ctx) => {
     const responses = [
       "I'm still alive. Pretty boring here though...",
@@ -256,7 +274,7 @@ async function setupTelegram() {
   telegraf.command("echo_to_group", (ctx) => {
     const text = _.get(ctx, "update.message.text") || "";
     const message = text.replace("/echo_to_group ", "");
-    if (message) sendTelegramGroupMessage(message);
+    if (message && message !== '/echo_to_group') sendTelegramGroupMessage(message);
   });
   await telegraf.launch();
   let response = pickRandomFromArray([
