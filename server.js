@@ -112,11 +112,11 @@ async function setupBlynkPins() {
     shouldNotifyOnExtTrigger = _.get(params, "[0]") !== "0";
   });
   v6.on("read", async function (params) {
-    // read shouldNotifyOnExtTrigger
+    // read extTriggerEnabled
     blynk.virtualWrite(5, extTriggerEnabled);
   });
   v6.on("write", async function (params) {
-    // write shouldNotifyOnExtTrigger
+    // write extTriggerEnabled
     extTriggerEnabled = _.get(params, "[0]") !== "0";
   });
   blynkRPiReboot.on("write", function (param) {
@@ -253,7 +253,7 @@ async function setupTelegram() {
     );
   });
   telegraf.command("toggle_opening_on_ext_sensor", async (ctx) => {
-    shouldNotifyOnExtTrigger = !shouldNotifyOnExtTrigger;
+    extTriggerEnabled = !extTriggerEnabled;
     ctx.reply(
       `Opening the gate on external trigger is ${
         extTriggerEnabled ? "enabled" : "disabled"
@@ -303,7 +303,7 @@ async function sendTelegramAdminImage(imagePath) {
 
 async function intercomCameraSnapshot() {
   const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL });
-  if (shouldNotifyOnExtTrigger) {
+  if (shouldNotifyOnExtTrigger && extTriggerEnabled) {
     await sendTelegramGroupImage(imagePath).catch(e => {
       deleteImage(imagePath)
       throw e
