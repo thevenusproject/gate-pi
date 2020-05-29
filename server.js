@@ -252,7 +252,7 @@ async function setupTelegram() {
       }`
     );
   });
-  telegraf.command("toggle_opening_on_external_trigger", async (ctx) => {
+  telegraf.command("toggle_opening_on_ext_sensor", async (ctx) => {
     shouldNotifyOnExtTrigger = !shouldNotifyOnExtTrigger;
     ctx.reply(
       `Opening the gate on external trigger is ${
