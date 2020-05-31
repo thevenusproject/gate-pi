@@ -132,6 +132,7 @@ async function setupBlynkPins() {
 }
 
 function writePinFromBlynk({ pin, params }) {
+  console.log('writePinFromBlynk', params)
   const value = _.get(params, "[0]") !== "1";
   writeRPiPin({ pin, value }).catch();
 }
