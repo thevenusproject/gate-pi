@@ -147,7 +147,10 @@ async function readPinFromBlynk({ gpioPin, blynkPin }) {
 async function setup() {
   await setupPhysicalPins().catch((e) => killProcess(e));
   await setupBlynkPins().catch((e) => killProcess(e));
-  await setupTelegram().catch((e) => killProcess(e));
+  await setupTelegram().catch((e) => {
+    console.log('setupTelegram err ', e)
+    killProcess(e)
+  });
   externalSensorPolling().catch((e) => killProcess(e));
 }
 
