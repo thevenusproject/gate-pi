@@ -23,6 +23,9 @@ const {
 const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messages
 const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation
 var blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN);
+blynk.on('error', (err) => {
+  console.error('Blynk error event', err);
+});
 let shouldNotifyOnExtTrigger = true;
 let extTriggerEnabled = true;
 // process.on("SIGTERM", () => {
@@ -41,12 +44,13 @@ const DISABLE_BUTTON_PIN = 33;
 const OPEN_PIN = 35;
 const EXTERNAL_SENSOR_SAMPLE_PIN = 16;
 
-const v1 = new blynk.VirtualPin(1);
-const v2 = new blynk.VirtualPin(2);
-const v3 = new blynk.VirtualPin(3);
-const v4 = new blynk.VirtualPin(4);
-const v5 = new blynk.VirtualPin(5);
-const v6 = new blynk.VirtualPin(6);
+const v1 = new blynk.VirtualPin(1);    // Cycle gate
+const v2 = new blynk.VirtualPin(2);    // Disable button
+const v3 = new blynk.VirtualPin(3);    // Open gate
+const v4 = new blynk.VirtualPin(4);    // read external sensor
+const v5 = new blynk.VirtualPin(5);    //  shouldNotifyOnExtTrigger
+const v6 = new blynk.VirtualPin(6);    //  extTriggerEnabled
+// const v7 = new blynk.VirtualPin(7);    //  keep gate open
 const blynkRPiReboot = new blynk.VirtualPin(20); // Setup Reboot Button
 
 const { promise: gpiop } = gpio;
@@ -119,6 +123,10 @@ async function setupBlynkPins() {
     // write extTriggerEnabled
     extTriggerEnabled = _.get(params, "[0]") !== "0";
   });
+  // v7.on("write", async function (params) {
+  //   // keep gate open
+  //   writePinFromBlynk({ pin: OPEN_PIN, params });
+  // });
   blynkRPiReboot.on("write", function (param) {
     // Watches for V10 Button
     if (param === 1) {
