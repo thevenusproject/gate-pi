@@ -293,6 +293,12 @@ async function setupTelegram() {
     );
   });
   telegraf.command("status", async (ctx) => {
+    const status = `Notify on external sensor is ${getSetting({setting: 'shouldNotifyOnExtTrigger'}) ? 'ON' : 'OFF'}\n`
+    + `External sensor is ${getSetting({setting: 'extTriggerEnabled'}) ? 'ENABLED' : 'DISABLED'}\n`
+    + `Keep gate open is ${getSetting({setting: 'keepOpen'}) ? 'ON' : 'OFF'}`
+    ctx.reply(status);
+  });
+  telegraf.command("is_alive", async (ctx) => {
     const responses = [
       "I'm still alive. Pretty boring here though...",
       "There's a package for you here! Not really, just want some company, wink wink",
@@ -302,10 +308,6 @@ async function setupTelegram() {
     ];
     const response = pickRandomFromArray(responses);
     ctx.reply(response);
-    const status = `Notify on external sensor trigger is ${getSetting({setting: 'shouldNotifyOnExtTrigger'}) ? 'ON' : 'OFF'}\n`
-    + `External sensor is ${getSetting({setting: 'extTriggerEnabled'}) ? 'ENABLED' : 'DISABLED'}\n`
-    + `${getSetting({setting: 'keepOpen'}) ? 'Keeping gate open' : 'Not keeping gate open'}`
-    ctx.reply(status);
   });
   telegraf.command("echo_to_group", (ctx) => {
     const text = _.get(ctx, "update.message.text") || "";
