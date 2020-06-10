@@ -7,7 +7,7 @@ import { exec } from "child_process";
 import axios from "axios";
 import fs from "fs";
 import Path from "path";
-import nconf from 'nconf';
+import nconf from "nconf";
 
 const INTERCOM_SNAPSHOT_URL =
   "http://gate-intercom.local:3438/stream/snapshot.jpeg";
@@ -34,7 +34,7 @@ blynk.on('error', (err) => {
 //   2. Environment variables
 //   3. A file located at 'path/to/config.json'
 //
-nconf.argv().env().file({ file: './config.json' });
+nconf.file({ file: "./config.json" });
 nconf.load();
 
 // process.on("SIGTERM", () => {
@@ -132,10 +132,6 @@ async function setupBlynkPins() {
     // write extTriggerEnabled
     saveSetting({setting: 'extTriggerEnabled',value: _.get(params, "[0]") !== "0"});
   });
-  // v7.on("write", async function (params) {
-  //   // keep gate open
-  //   writePinFromBlynk({ pin: OPEN_PIN, params });
-  // });
   blynkRPiReboot.on("write", function (param) {
     // Watches for V10 Button
     if (param === 1) {
@@ -276,10 +272,11 @@ async function setupTelegram() {
     );
   });
   telegraf.command("toggle_opening_on_ext_sensor", async (ctx) => {
-    saveSetting({setting: 'extTriggerEnabled', value: !getSetting({setting: 'extTriggerEnabled'})});
+    const newValue = !getSetting({setting: 'extTriggerEnabled'});
+    saveSetting({setting: 'extTriggerEnabled', value: newValue});
     ctx.reply(
       `Opening the gate on external trigger is ${
-        getSetting({setting: 'extTriggerEnabled'}) ? "enabled" : "disabled"
+        newValue ? "enabled" : "disabled"
       }`
     );
   });
@@ -392,18 +389,21 @@ function pickRandomFromArray(arr) {
   else return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function getSetting({setting}) {
+function getSetting({ setting }) {
   return nconf.get(`settings:${setting}`);
 }
 
-function saveSetting({setting, value}) {
+async function saveSetting({ setting, value }) {
   nconf.set(`settings:${setting}`, value);
-  nconf.save(function (err) {
-    fs.readFile('./config.json', function (err, data) {
-      console.dir(JSON.parse(data.toString()))
+  return new Promise((res, rej) => {
+    nconf.save(function (err, data) {
+      if (!err) res(data)
+      else fs.readFile("./config.json", function (err, data) {
+        console.dir(JSON.parse(data.toString()));
+        rej(new Error('Err in saveSetting'))
+      });
     });
   });
-  nconf.load()
 }
 
 setup().catch((e) => console.log("err in setup", e));
