@@ -305,7 +305,7 @@ async function setupTelegram() {
     const status = `Notify on external sensor trigger is ${getSetting({setting: 'shouldNotifyOnExtTrigger'}) ? 'ON' : 'OFF'}\n`
     + `External sensor is ${getSetting({setting: 'extTriggerEnabled'}) ? 'ENABLED' : 'DISABLED'}\n`
     + `${getSetting({setting: 'keepOpen'}) ? 'Keeping gate open' : 'Not keeping gate open'}`
-    ctx.reply(response);
+    ctx.reply(status);
   });
   telegraf.command("echo_to_group", (ctx) => {
     const text = _.get(ctx, "update.message.text") || "";
