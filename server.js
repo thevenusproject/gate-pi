@@ -91,8 +91,12 @@ async function cycleGate() {
   return momentaryRelaySet({ pin: CYCLE_PIN, value: false });
 }
 
-async function openGate() {
+async function openGateTemporarily() {
   return momentaryRelaySet({ pin: OPEN_PIN, value: false });
+}
+
+async function openGate() {
+  await writeRPiPin({ pin: OPEN_PIN, value: false });
 }
 
 // Blynk
@@ -192,7 +196,7 @@ async function externalSensorPolling() {
       if (triggerCounter >= COUNT_TRIGGER) {
         // console.log("Ext. sensor triggered. Opening gate");
         triggerCounter = 0;
-        if (getSetting({setting: 'extTriggerEnabled'})) await openGate();
+        if (getSetting({setting: 'extTriggerEnabled'})) await openGateTemporarily();
         const day = new Date().getDay();
         let response = pickRandomFromArray([
           "External sensor. Opening gate",
@@ -247,7 +251,7 @@ async function setupTelegram() {
     else console.log("Message irrelevant to the bot");
   });
   telegraf.command("open", async (ctx) => {
-    await openGate();
+    await openGateTemporarily();
     ctx.reply("Gate is opening");
   });
   telegraf.command("cycle", async (ctx) => {
@@ -282,7 +286,8 @@ async function setupTelegram() {
   });
   telegraf.command("toggle_keep_open", async (ctx) => {
     const newValue = !getSetting({setting: 'keepOpen'});
-    saveSetting({setting: 'keepOpen', value: newValue});
+    await openGate();
+    saveSetting({setting: 'keepOpen', value: newValue}).catch(e => ctx.reply('failed saving setting keepOpen'));
     ctx.reply(
       `"Keep the gate open" is ${
         newValue ? "ON" : "OFF"
