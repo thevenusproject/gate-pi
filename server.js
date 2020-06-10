@@ -98,6 +98,9 @@ async function openGateTemporarily() {
 async function openGate() {
   if (!getSetting({setting: 'keepOpen'})) await writeRPiPin({ pin: OPEN_PIN, value: false });
 }
+async function unopenGate() {
+  if (!getSetting({setting: 'keepOpen'})) await writeRPiPin({ pin: OPEN_PIN, value: true });
+}
 
 // Blynk
 async function setupBlynkPins() {
@@ -287,7 +290,8 @@ async function setupTelegram() {
   telegraf.command("toggle_keep_open", async (ctx) => {
     const newValue = !getSetting({setting: 'keepOpen'});
     await saveSetting({setting: 'keepOpen', value: newValue}).catch(e => ctx.reply('failed saving setting keepOpen'));
-    await openGate();
+    if (!!newValue) unopenGate().catch();
+    else await openGate();
     ctx.reply(
       `"Keep the gate open" is ${
         newValue ? "ON" : "OFF"
