@@ -7,6 +7,7 @@ import { exec } from "child_process";
 import axios from "axios";
 import fs from "fs";
 import Path from "path";
+import nconf from 'nconf';
 
 const INTERCOM_SNAPSHOT_URL =
   "http://gate-intercom.local:3438/stream/snapshot.jpeg";
@@ -26,8 +27,16 @@ var blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN);
 blynk.on('error', (err) => {
   console.error('Blynk error event', err);
 });
-let shouldNotifyOnExtTrigger = true;
-let extTriggerEnabled = true;
+
+//
+// Setup nconf to use (in-order):
+//   1. Command-line arguments
+//   2. Environment variables
+//   3. A file located at 'path/to/config.json'
+//
+nconf.argv().env().file({ file: './config.json' });
+nconf.load();
+
 // process.on("SIGTERM", () => {
 // server.close(() => {
 //   console.log("Process terminated");
@@ -109,19 +118,19 @@ async function setupBlynkPins() {
   });
   v5.on("read", async function (params) {
     // read shouldNotifyOnExtTrigger
-    blynk.virtualWrite(5, shouldNotifyOnExtTrigger);
+    blynk.virtualWrite(5, getSetting({setting: 'shouldNotifyOnExtTrigger'}));
   });
   v5.on("write", async function (params) {
     // write shouldNotifyOnExtTrigger
-    shouldNotifyOnExtTrigger = _.get(params, "[0]") !== "0";
+    saveSetting({setting: 'shouldNotifyOnExtTrigger',value: _.get(params, "[0]") !== "0"});
   });
   v6.on("read", async function (params) {
     // read extTriggerEnabled
-    blynk.virtualWrite(5, extTriggerEnabled);
+    blynk.virtualWrite(5, getSetting({setting: 'extTriggerEnabled'}));
   });
   v6.on("write", async function (params) {
     // write extTriggerEnabled
-    extTriggerEnabled = _.get(params, "[0]") !== "0";
+    saveSetting({setting: 'extTriggerEnabled',value: _.get(params, "[0]") !== "0"});
   });
   // v7.on("write", async function (params) {
   //   // keep gate open
@@ -187,7 +196,7 @@ async function externalSensorPolling() {
       if (triggerCounter >= COUNT_TRIGGER) {
         // console.log("Ext. sensor triggered. Opening gate");
         triggerCounter = 0;
-        if (extTriggerEnabled) await openGate();
+        if (getSetting({setting: 'extTriggerEnabled'})) await openGate();
         const day = new Date().getDay();
         let response = pickRandomFromArray([
           "External sensor. Opening gate",
@@ -200,12 +209,13 @@ async function externalSensorPolling() {
         //     "External sensor. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus";
         if (coolDownNotificationsCounter <= 0) {
           coolDownNotificationsCounter = 120;
-          if (extTriggerEnabled && shouldNotifyOnExtTrigger) {
-            await sendTelegramGroupMessage(response);
-            await intercomCameraSnapshot();
+          const extTriggerEnabled = getSetting({setting: 'extTriggerEnabled'});
+          if (extTriggerEnabled && getSetting({setting: 'shouldNotifyOnExtTrigger'})) {
+            await sendTelegramGroupMessage(response).catch(e => console.log('err sendTelegramGroupMessage', e));
+            await intercomCameraSnapshot().catch(e => console.log('err intercomCameraSnapshot', e));
           } else {
-            await sendTelegramAdminMessage(extTriggerEnabled ? response : 'Ext sensor was triggered but opening is disabled');
-            await intercomCameraSnapshot();
+            await sendTelegramAdminMessage(extTriggerEnabled ? response : 'Ext sensor was triggered but opening is disabled').catch(e => console.log('extTriggerEnabled',extTriggerEnabled,'err sendTelegramAdminMessage', e));
+            await intercomCameraSnapshot().catch(e => console.log('extTriggerEnabled',extTriggerEnabled,'err intercomCameraSnapshot', e));
           }
         }
         // console.log('coolDownNotificationsCounter', coolDownNotificationsCounter)
@@ -257,7 +267,8 @@ async function setupTelegram() {
     await deleteImage(imagePath);
   });
   telegraf.command("notify_on_ext_trigger", async (ctx) => {
-    shouldNotifyOnExtTrigger = !shouldNotifyOnExtTrigger;
+    const shouldNotifyOnExtTrigger = getSetting({setting: 'shouldNotifyOnExtTrigger'})
+    saveSetting({setting: 'shouldNotifyOnExtTrigger', value: !shouldNotifyOnExtTrigger});
     ctx.reply(
       `Notifications on external trigger are ${
         shouldNotifyOnExtTrigger ? "on" : "off"
@@ -265,10 +276,19 @@ async function setupTelegram() {
     );
   });
   telegraf.command("toggle_opening_on_ext_sensor", async (ctx) => {
-    extTriggerEnabled = !extTriggerEnabled;
+    saveSetting({setting: 'extTriggerEnabled', value: !getSetting({setting: 'extTriggerEnabled'})});
     ctx.reply(
       `Opening the gate on external trigger is ${
-        extTriggerEnabled ? "enabled" : "disabled"
+        getSetting({setting: 'extTriggerEnabled'}) ? "enabled" : "disabled"
+      }`
+    );
+  });
+  telegraf.command("toggle_keep_open", async (ctx) => {
+    const newValue = !getSetting({setting: 'keepOpen'});
+    saveSetting({setting: 'keepOpen', value: newValue});
+    ctx.reply(
+      `"Keep the gate open" is ${
+        newValue ? "ON" : "OFF"
       }`
     );
   });
@@ -281,6 +301,10 @@ async function setupTelegram() {
       "Corcen here!",
     ];
     const response = pickRandomFromArray(responses);
+    ctx.reply(response);
+    const status = `Notify on external sensor trigger is ${getSetting({setting: 'shouldNotifyOnExtTrigger'}) ? 'ON' : 'OFF'}\n`
+    + `External sensor is ${getSetting({setting: 'extTriggerEnabled'}) ? 'ENABLED' : 'DISABLED'}\n`
+    + `${getSetting({setting: 'keepOpen'}) ? 'Keeping gate open' : 'Not keeping gate open'}`
     ctx.reply(response);
   });
   telegraf.command("echo_to_group", (ctx) => {
@@ -315,7 +339,7 @@ async function sendTelegramAdminImage(imagePath) {
 
 async function intercomCameraSnapshot() {
   const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL });
-  if (shouldNotifyOnExtTrigger && extTriggerEnabled) {
+  if (getSetting({setting: 'shouldNotifyOnExtTrigger'}) && getSetting({setting: 'extTriggerEnabled'})) {
     await sendTelegramGroupImage(imagePath).catch(e => {
       deleteImage(imagePath)
       throw e
@@ -364,6 +388,20 @@ function pickRandomFromArray(arr) {
   if (!arr || !Array.isArray(arr))
     console.warn("invalid arr in pickRandomFromArray");
   else return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getSetting({setting}) {
+  return nconf.get(`settings:${setting}`);
+}
+
+function saveSetting({setting, value}) {
+  nconf.set(`settings:${setting}`, value);
+  nconf.save(function (err) {
+    fs.readFile('./config.json', function (err, data) {
+      console.dir(JSON.parse(data.toString()))
+    });
+  });
+  nconf.load()
 }
 
 setup().catch((e) => console.log("err in setup", e));

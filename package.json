@@ -28,6 +28,7 @@
     "blynk-library": "^0.5.4",
     "dotenv": "^8.2.0",
     "lodash": "^4.17.15",
+    "nconf": "^0.10.0",
     "rpi-gpio": "^2.1.5",
     "telegraf": "^3.37.0"
   },

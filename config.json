@@ -1,0 +1,7 @@
+{
+  "settings": {
+    "shouldNotifyOnExtTrigger": true,
+    "extTriggerEnabled": true,
+    "keepOpen": false
+  }
+}
