@@ -274,7 +274,7 @@ async function setupTelegram() {
     saveSetting({setting: 'shouldNotifyOnExtTrigger', value: newValue});
     ctx.reply(
       `Notifications on external trigger are ${
-        newValue ? "on" : "off"
+        newValue ? "ON" : "OFF"
       }`
     );
   });
@@ -283,7 +283,7 @@ async function setupTelegram() {
     saveSetting({setting: 'extTriggerEnabled', value: newValue});
     ctx.reply(
       `Opening the gate on external trigger is ${
-        newValue ? "enabled" : "disabled"
+        newValue ? "ENABLED" : "DISABLED"
       }`
     );
   });
