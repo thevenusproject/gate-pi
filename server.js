@@ -270,11 +270,11 @@ async function setupTelegram() {
     await deleteImage(imagePath);
   });
   telegraf.command("notify_on_ext_trigger", async (ctx) => {
-    const shouldNotifyOnExtTrigger = getSetting({setting: 'shouldNotifyOnExtTrigger'})
-    saveSetting({setting: 'shouldNotifyOnExtTrigger', value: !shouldNotifyOnExtTrigger});
+    const newValue = !getSetting({setting: 'shouldNotifyOnExtTrigger'})
+    saveSetting({setting: 'shouldNotifyOnExtTrigger', value: newValue});
     ctx.reply(
       `Notifications on external trigger are ${
-        shouldNotifyOnExtTrigger ? "on" : "off"
+        newValue ? "on" : "off"
       }`
     );
   });
