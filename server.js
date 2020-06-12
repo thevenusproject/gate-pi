@@ -96,10 +96,10 @@ async function openGateTemporarily() {
 }
 
 async function openGate() {
-  if (!getSetting({setting: 'keepOpen'})) await writeRPiPin({ pin: OPEN_PIN, value: false });
+  await writeRPiPin({ pin: OPEN_PIN, value: false });
 }
 async function unopenGate() {
-  if (!getSetting({setting: 'keepOpen'})) await writeRPiPin({ pin: OPEN_PIN, value: true });
+  await writeRPiPin({ pin: OPEN_PIN, value: true });
 }
 
 // Blynk
