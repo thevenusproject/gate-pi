@@ -290,8 +290,8 @@ async function setupTelegram() {
   telegraf.command("toggle_keep_open", async (ctx) => {
     const newValue = !getSetting({setting: 'keepOpen'});
     await saveSetting({setting: 'keepOpen', value: newValue}).catch(e => ctx.reply('failed saving setting keepOpen'));
-    if (!!newValue) unopenGate().catch();
-    else await openGate();
+    if (!!newValue) openGate().catch();
+    else await unopenGate();
     ctx.reply(
       `"Keep the gate open" is ${
         newValue ? "ON" : "OFF"
