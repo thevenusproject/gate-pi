@@ -150,6 +150,7 @@ async function setupBlynkPins() {
     if (param === 1) {
       // Runs the CLI command if the button on V10 is pressed
       // reboot - sudo /sbin/reboot
+      console.log("blynkRPiReboot")
       exec("sudo /bin/systemctl restart GateOpener.service", function (err, stdout, stderr) {
         if (err) console.log(stderr);
         else console.log(stdout);
