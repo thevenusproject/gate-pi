@@ -11,8 +11,7 @@ import nconf from "nconf";
 
 const INTERCOM_SNAPSHOT_URL =
   "http://gate-intercom.local:3438/stream/snapshot.jpeg";
-const INTERCOM_STREAM_URL =
-  "http://gate-intercom.local:3438/stream";
+const INTERCOM_STREAM_URL = "http://gate-intercom.local:3438/stream";
 dotenv_config();
 // console.log(`Your port is ${process.env.PORT}`); // 3000
 const {
@@ -24,8 +23,8 @@ const {
 const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messages
 const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation
 var blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN);
-blynk.on('error', (err) => {
-  console.error('Blynk error event', err);
+blynk.on("error", (err) => {
+  console.error("Blynk error event", err);
 });
 
 //
@@ -53,12 +52,12 @@ const DISABLE_BUTTON_PIN = 33;
 const OPEN_PIN = 35;
 const EXTERNAL_SENSOR_SAMPLE_PIN = 16;
 
-const v1 = new blynk.VirtualPin(1);    // Cycle gate
-const v2 = new blynk.VirtualPin(2);    // Disable button
-const v3 = new blynk.VirtualPin(3);    // Open gate
-const v4 = new blynk.VirtualPin(4);    // read external sensor
-const v5 = new blynk.VirtualPin(5);    //  shouldNotifyOnExtTrigger
-const v6 = new blynk.VirtualPin(6);    //  extTriggerEnabled
+const v1 = new blynk.VirtualPin(1); // Cycle gate
+const v2 = new blynk.VirtualPin(2); // Disable button
+const v3 = new blynk.VirtualPin(3); // Open gate
+const v4 = new blynk.VirtualPin(4); // read external sensor
+const v5 = new blynk.VirtualPin(5); //  shouldNotifyOnExtTrigger
+const v6 = new blynk.VirtualPin(6); //  extTriggerEnabled
 // const v7 = new blynk.VirtualPin(7);    //  keep gate open
 const blynkRPiReboot = new blynk.VirtualPin(20); // Setup Reboot Button
 
@@ -92,7 +91,8 @@ async function cycleGate() {
 }
 
 async function openGateTemporarily() {
-  if (!getSetting({setting: 'keepOpen'})) return momentaryRelaySet({ pin: OPEN_PIN, value: false });
+  if (!getSetting({ setting: "keepOpen" }))
+    return momentaryRelaySet({ pin: OPEN_PIN, value: false });
 }
 
 async function openGate() {
@@ -125,25 +125,32 @@ async function setupBlynkPins() {
   });
   v5.on("read", async function (params) {
     // read shouldNotifyOnExtTrigger
-    blynk.virtualWrite(5, getSetting({setting: 'shouldNotifyOnExtTrigger'}));
+    blynk.virtualWrite(5, getSetting({ setting: "shouldNotifyOnExtTrigger" }));
   });
   v5.on("write", async function (params) {
     // write shouldNotifyOnExtTrigger
-    saveSetting({setting: 'shouldNotifyOnExtTrigger',value: _.get(params, "[0]") !== "0"});
+    saveSetting({
+      setting: "shouldNotifyOnExtTrigger",
+      value: _.get(params, "[0]") !== "0",
+    });
   });
   v6.on("read", async function (params) {
     // read extTriggerEnabled
-    blynk.virtualWrite(5, getSetting({setting: 'extTriggerEnabled'}));
+    blynk.virtualWrite(5, getSetting({ setting: "extTriggerEnabled" }));
   });
   v6.on("write", async function (params) {
     // write extTriggerEnabled
-    saveSetting({setting: 'extTriggerEnabled',value: _.get(params, "[0]") !== "0"});
+    saveSetting({
+      setting: "extTriggerEnabled",
+      value: _.get(params, "[0]") !== "0",
+    });
   });
   blynkRPiReboot.on("write", function (param) {
-    // Watches for V10 Button
+    // Watches for V20 Button
     if (param === 1) {
       // Runs the CLI command if the button on V10 is pressed
-      exec("sudo /sbin/reboot", function (err, stdout, stderr) {
+      // reboot - sudo /sbin/reboot
+      exec("sudo /bin/systemctl restart GateOpener.service", function (err, stdout, stderr) {
         if (err) console.log(stderr);
         else console.log(stdout);
       });
@@ -152,7 +159,7 @@ async function setupBlynkPins() {
 }
 
 function writePinFromBlynk({ pin, params }) {
-  console.log('writePinFromBlynk', params)
+  console.log("writePinFromBlynk", params);
   const value = _.get(params, "[0]") !== "1";
   writeRPiPin({ pin, value }).catch();
 }
@@ -168,8 +175,8 @@ async function setup() {
   await setupPhysicalPins().catch((e) => killProcess(e));
   await setupBlynkPins().catch((e) => killProcess(e));
   await setupTelegram().catch((e) => {
-    console.log('setupTelegram err ', e)
-    killProcess(e)
+    console.log("setupTelegram err ", e);
+    killProcess(e);
   });
   externalSensorPolling().catch((e) => killProcess(e));
 }
@@ -197,28 +204,57 @@ async function externalSensorPolling() {
     if (sensorIsBlocked) {
       // console.log("Ext. sensor triggered. counter ", triggerCounter);
       if (triggerCounter >= COUNT_TRIGGER) {
+        const extTriggerEnabled = getSetting({ setting: "extTriggerEnabled" });
+        const shouldNotifyOnExtTrigger = getSetting({
+          setting: "shouldNotifyOnExtTrigger",
+        });
         // console.log("Ext. sensor triggered. Opening gate");
         triggerCounter = 0;
-        if (getSetting({setting: 'extTriggerEnabled'})) await openGateTemporarily();
-        const day = new Date().getDay();
-        let response = pickRandomFromArray([
-          "External sensor. Opening gate",
-          // "Ext. sensor triggered, maybe a new package?? So exciting..",
-          // "Ext. sensor triggered, is Rox checking for mail again?",
-        ]);
-        if (day === 0) response = "External sensor. Tomorrow is garbage day!";
-        // if (day === 6)
-        //   response =
-        //     "External sensor. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus";
-        if (coolDownNotificationsCounter <= 0) {
-          coolDownNotificationsCounter = 120;
-          const extTriggerEnabled = getSetting({setting: 'extTriggerEnabled'});
-          if (extTriggerEnabled && getSetting({setting: 'shouldNotifyOnExtTrigger'})) {
-            await sendTelegramGroupMessage(response).catch(e => console.log('err sendTelegramGroupMessage', e));
-            await intercomCameraSnapshot().catch(e => console.log('err intercomCameraSnapshot', e));
-          } else {
-            await sendTelegramAdminMessage(extTriggerEnabled ? response : 'Ext sensor was triggered but opening is disabled').catch(e => console.log('extTriggerEnabled',extTriggerEnabled,'err sendTelegramAdminMessage', e));
-            await intercomCameraSnapshot().catch(e => console.log('extTriggerEnabled',extTriggerEnabled,'err intercomCameraSnapshot', e));
+        if (extTriggerEnabled) {
+          await openGateTemporarily();
+          const day = new Date().getDay();
+          let response = pickRandomFromArray([
+            "External sensor. Opening gate",
+            // "Ext. sensor triggered, maybe a new package?? So exciting..",
+            // "Ext. sensor triggered, is Rox checking for mail again?",
+          ]);
+          if (day === 0) response = "External sensor. Tomorrow is garbage day!";
+          // if (day === 6)
+          //   response =
+          //     "External sensor. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus";
+          if (coolDownNotificationsCounter <= 0) {
+            coolDownNotificationsCounter = 120;
+            if (extTriggerEnabled) {
+              if (shouldNotifyOnExtTrigger) {
+                await sendTelegramGroupMessage(response).catch((e) =>
+                  console.log("err sendTelegramGroupMessage", e)
+                );
+                await intercomCameraSnapshot().catch((e) =>
+                  console.log("err intercomCameraSnapshot", e)
+                );
+              } else {
+                await sendTelegramAdminMessage(
+                  extTriggerEnabled
+                    ? response
+                    : "Ext sensor was triggered but opening is disabled"
+                ).catch((e) =>
+                  console.log(
+                    "extTriggerEnabled",
+                    extTriggerEnabled,
+                    "err sendTelegramAdminMessage",
+                    e
+                  )
+                );
+                await intercomCameraSnapshot().catch((e) =>
+                  console.log(
+                    "extTriggerEnabled",
+                    extTriggerEnabled,
+                    "err intercomCameraSnapshot",
+                    e
+                  )
+                );
+              }
+            }
           }
         }
         // console.log('coolDownNotificationsCounter', coolDownNotificationsCounter)
@@ -262,25 +298,25 @@ async function setupTelegram() {
     ctx.reply("Gate cycling");
   });
   telegraf.command("intercom_snapshot", async (ctx) => {
-    const imagePath = await downloadImage({url: INTERCOM_SNAPSHOT_URL});
-    await ctx.replyWithPhoto({source: imagePath}, {caption: INTERCOM_STREAM_URL}).catch(e => {
-      deleteImage(imagePath)
-      throw e;
-    });
+    const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL });
+    await ctx
+      .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
+      .catch((e) => {
+        deleteImage(imagePath);
+        throw e;
+      });
     await deleteImage(imagePath);
   });
   telegraf.command("notify_on_ext_trigger", async (ctx) => {
-    const newValue = !getSetting({setting: 'shouldNotifyOnExtTrigger'})
-    saveSetting({setting: 'shouldNotifyOnExtTrigger', value: newValue});
+    const newValue = !getSetting({ setting: "shouldNotifyOnExtTrigger" });
+    saveSetting({ setting: "shouldNotifyOnExtTrigger", value: newValue });
     ctx.reply(
-      `Notifications on external trigger are ${
-        newValue ? "ON" : "OFF"
-      }`
+      `Notifications on external trigger are ${newValue ? "ON" : "OFF"}`
     );
   });
   telegraf.command("toggle_opening_on_ext_sensor", async (ctx) => {
-    const newValue = !getSetting({setting: 'extTriggerEnabled'});
-    saveSetting({setting: 'extTriggerEnabled', value: newValue});
+    const newValue = !getSetting({ setting: "extTriggerEnabled" });
+    saveSetting({ setting: "extTriggerEnabled", value: newValue });
     ctx.reply(
       `Opening the gate on external trigger is ${
         newValue ? "ENABLED" : "DISABLED"
@@ -288,20 +324,23 @@ async function setupTelegram() {
     );
   });
   telegraf.command("toggle_keep_open", async (ctx) => {
-    const newValue = !getSetting({setting: 'keepOpen'});
-    await saveSetting({setting: 'keepOpen', value: newValue}).catch(e => ctx.reply('failed saving setting keepOpen'));
+    const newValue = !getSetting({ setting: "keepOpen" });
+    await saveSetting({ setting: "keepOpen", value: newValue }).catch((e) =>
+      ctx.reply("failed saving setting keepOpen")
+    );
     if (!!newValue) openGate().catch();
     else await unopenGate();
-    ctx.reply(
-      `"Keep the gate open" is ${
-        newValue ? "ON" : "OFF"
-      }`
-    );
+    ctx.reply(`"Keep the gate open" is ${newValue ? "ON" : "OFF"}`);
   });
   telegraf.command("status", async (ctx) => {
-    const status = `Notify on external sensor is ${getSetting({setting: 'shouldNotifyOnExtTrigger'}) ? 'ON' : 'OFF'}\n`
-    + `External sensor is ${getSetting({setting: 'extTriggerEnabled'}) ? 'ENABLED' : 'DISABLED'}\n`
-    + `Keep gate open is ${getSetting({setting: 'keepOpen'}) ? 'ON' : 'OFF'}`
+    const status =
+      `Notify on external sensor is ${
+        getSetting({ setting: "shouldNotifyOnExtTrigger" }) ? "ON" : "OFF"
+      }\n` +
+      `External sensor is ${
+        getSetting({ setting: "extTriggerEnabled" }) ? "ENABLED" : "DISABLED"
+      }\n` +
+      `Keep gate open is ${getSetting({ setting: "keepOpen" }) ? "ON" : "OFF"}`;
     ctx.reply(status);
   });
   telegraf.command("is_alive", async (ctx) => {
@@ -318,7 +357,8 @@ async function setupTelegram() {
   telegraf.command("echo_to_group", (ctx) => {
     const text = _.get(ctx, "update.message.text") || "";
     const message = text.replace("/echo_to_group ", "");
-    if (message && message !== '/echo_to_group') sendTelegramGroupMessage(message);
+    if (message && message !== "/echo_to_group")
+      sendTelegramGroupMessage(message);
   });
   await telegraf.launch();
   let response = pickRandomFromArray([
@@ -334,7 +374,11 @@ async function sendTelegramGroupMessage(message) {
   await telegram.sendMessage(GATE_GROUP_CHAT_ID, message);
 }
 async function sendTelegramGroupImage(imagePath) {
-  await telegram.sendPhoto(GATE_GROUP_CHAT_ID, { source: imagePath }, {caption: INTERCOM_STREAM_URL});
+  await telegram.sendPhoto(
+    GATE_GROUP_CHAT_ID,
+    { source: imagePath },
+    { caption: INTERCOM_STREAM_URL }
+  );
 }
 
 async function sendTelegramAdminMessage(message) {
@@ -342,28 +386,39 @@ async function sendTelegramAdminMessage(message) {
 }
 
 async function sendTelegramAdminImage(imagePath) {
-  await telegram.sendPhoto(MY_CHAT_ID, { source: imagePath }, {caption: INTERCOM_STREAM_URL});
+  await telegram.sendPhoto(
+    MY_CHAT_ID,
+    { source: imagePath },
+    { caption: INTERCOM_STREAM_URL }
+  );
 }
 
 async function intercomCameraSnapshot() {
   const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL });
-  if (getSetting({setting: 'shouldNotifyOnExtTrigger'}) && getSetting({setting: 'extTriggerEnabled'})) {
-    await sendTelegramGroupImage(imagePath).catch(e => {
-      deleteImage(imagePath)
-      throw e
-    })
+  if (
+    getSetting({ setting: "shouldNotifyOnExtTrigger" }) &&
+    getSetting({ setting: "extTriggerEnabled" })
+  ) {
+    await sendTelegramGroupImage(imagePath).catch((e) => {
+      deleteImage(imagePath);
+      throw e;
+    });
   } else {
-    await sendTelegramAdminImage(imagePath).catch(e => {
-      deleteImage(imagePath)
-      throw e
-    })
+    await sendTelegramAdminImage(imagePath).catch((e) => {
+      deleteImage(imagePath);
+      throw e;
+    });
   }
-  await deleteImage(imagePath)
+  await deleteImage(imagePath);
 }
 
 async function downloadImage({ url }) {
   // const path = `${__dirname}/intercom_photos/${Date.now()}.jpg`;
-  const imagePath = Path.resolve(__dirname, "intercom_photos", `${Date.now()}.jpg`);
+  const imagePath = Path.resolve(
+    __dirname,
+    "intercom_photos",
+    `${Date.now()}.jpg`
+  );
   const writer = fs.createWriteStream(imagePath);
   const response = await axios({
     url,
@@ -406,11 +461,12 @@ async function saveSetting({ setting, value }) {
   nconf.set(`settings:${setting}`, value);
   return new Promise((res, rej) => {
     nconf.save(function (err, data) {
-      if (!err) res(data)
-      else fs.readFile("./config.json", function (err, data) {
-        console.dir(JSON.parse(data.toString()));
-        rej(new Error('Err in saveSetting'))
-      });
+      if (!err) res(data);
+      else
+        fs.readFile("./config.json", function (err, data) {
+          console.dir(JSON.parse(data.toString()));
+          rej(new Error("Err in saveSetting"));
+        });
     });
   });
 }
