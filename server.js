@@ -362,7 +362,6 @@ async function setupTelegram() {
     if (message && message !== "/echo_to_group")
       sendTelegramGroupMessage(message);
   });
-  await telegraf.launch();
   let response = pickRandomFromArray([
     "I'm back online, how long was I out? Minutes? Days? Years???",
     "Reporting back online",
@@ -370,6 +369,7 @@ async function setupTelegram() {
     "A lovely day to be back online again!",
   ]);
   await sendTelegramAdminMessage(response);
+  return telegraf.launch();
 }
 
 async function sendTelegramGroupMessage(message) {
