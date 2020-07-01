@@ -10,8 +10,11 @@ import Path from "path";
 import nconf from "nconf";
 
 const INTERCOM_SNAPSHOT_URL =
-  "http://gate-intercom.local:3438/stream/snapshot.jpeg";
-const INTERCOM_STREAM_URL = "http://gate-intercom.local:3438/stream";
+  "http://192.168.2.15:8081";
+const GATE_SNAPSHOT_URL =
+  "http://192.168.2.15:8084";
+const INTERCOM_STREAM_URL = "http://192.168.2.15:8081";
+const GATE_STREAM_URL = "http://192.168.2.15:8084";
 dotenv_config();
 // console.log(`Your port is ${process.env.PORT}`); // 3000
 const {
@@ -27,6 +30,8 @@ blynk.on("error", (err) => {
   console.error("Blynk error event", err);
 });
 
+const INTERCOM = 'INTERCOM';
+const GATE = 'GATE';
 //
 // Setup nconf to use (in-order):
 //   1. Command-line arguments
@@ -231,8 +236,8 @@ async function externalSensorPolling() {
                 await sendTelegramGroupMessage(response).catch((e) =>
                   console.log("err sendTelegramGroupMessage", e)
                 );
-                await intercomCameraSnapshot().catch((e) =>
-                  console.log("err intercomCameraSnapshot", e)
+                await camerasSnapshot().catch((e) =>
+                  console.log("err camerasSnapshot", e)
                 );
               } else {
                 await sendTelegramAdminMessage(
@@ -247,11 +252,11 @@ async function externalSensorPolling() {
                     e
                   )
                 );
-                await intercomCameraSnapshot().catch((e) =>
+                await camerasSnapshot().catch((e) =>
                   console.log(
                     "extTriggerEnabled",
                     extTriggerEnabled,
-                    "err intercomCameraSnapshot",
+                    "err camerasSnapshot",
                     e
                   )
                 );
@@ -300,7 +305,17 @@ async function setupTelegram() {
     ctx.reply("Gate cycling");
   });
   telegraf.command("intercom_snapshot", async (ctx) => {
-    const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL });
+    const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL, type: INTERCOM });
+    await ctx
+      .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
+      .catch((e) => {
+        deleteImage(imagePath);
+        throw e;
+      });
+    await deleteImage(imagePath);
+  });
+  telegraf.command("gate_snapshot", async (ctx) => {
+    const imagePath = await downloadImage({ url: GATE_SNAPSHOT_URL, type: GATE });
     await ctx
       .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
       .catch((e) => {
@@ -375,51 +390,62 @@ async function setupTelegram() {
 async function sendTelegramGroupMessage(message) {
   await telegram.sendMessage(GATE_GROUP_CHAT_ID, message);
 }
-async function sendTelegramGroupImage(imagePath) {
-  await telegram.sendPhoto(
-    GATE_GROUP_CHAT_ID,
-    { source: imagePath },
-    { caption: INTERCOM_STREAM_URL }
-  );
-}
 
 async function sendTelegramAdminMessage(message) {
   await telegram.sendMessage(MY_CHAT_ID, message);
 }
 
-async function sendTelegramAdminImage(imagePath) {
+async function sendTelegramGroupImage(imagePath, caption) {
   await telegram.sendPhoto(
-    MY_CHAT_ID,
+    GATE_GROUP_CHAT_ID,
     { source: imagePath },
-    { caption: INTERCOM_STREAM_URL }
+    { caption }
   );
 }
 
-async function intercomCameraSnapshot() {
-  const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL });
+async function sendTelegramAdminImage(imagePath, caption) {
+  await telegram.sendPhoto(
+    MY_CHAT_ID,
+    { source: imagePath },
+    { caption }
+  );
+}
+
+async function camerasSnapshot() {
+  const intercomImagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL, type: INTERCOM }).catch(e => console.warn('err getting intercom image', e));
+  const gateImagePath = await downloadImage({ url: GATE_SNAPSHOT_URL, type: GATE }).catch(e => console.warn('err getting gate image', e));
   if (
     getSetting({ setting: "shouldNotifyOnExtTrigger" }) &&
     getSetting({ setting: "extTriggerEnabled" })
   ) {
-    await sendTelegramGroupImage(imagePath).catch((e) => {
-      deleteImage(imagePath);
+    await sendTelegramGroupImage(intercomImagePath, INTERCOM_STREAM_URL).catch((e) => {
+      deleteImage(intercomImagePath);
+      throw e;
+    });
+    await sendTelegramGroupImage(gateImagePath, GATE_STREAM_URL).catch((e) => {
+      deleteImage(gateImagePath);
       throw e;
     });
   } else {
-    await sendTelegramAdminImage(imagePath).catch((e) => {
-      deleteImage(imagePath);
+    await sendTelegramAdminImage(intercomImagePath, INTERCOM_STREAM_URL).catch((e) => {
+      deleteImage(intercomImagePath);
+      throw e;
+    });
+    await sendTelegramAdminImage(gateImagePath, GATE_STREAM_URL).catch((e) => {
+      deleteImage(gateImagePath);
       throw e;
     });
   }
-  await deleteImage(imagePath);
+  await deleteImage(intercomImagePath);
+  await deleteImage(gateImagePath);
 }
 
-async function downloadImage({ url }) {
+async function downloadImage({ url, type = '' }) {
   // const path = `${__dirname}/intercom_photos/${Date.now()}.jpg`;
   const imagePath = Path.resolve(
     __dirname,
     "intercom_photos",
-    `${Date.now()}.jpg`
+    `${type || ''}${Date.now()}.jpg`
   );
   const writer = fs.createWriteStream(imagePath);
   const response = await axios({
