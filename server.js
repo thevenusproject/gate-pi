@@ -10,9 +10,9 @@ import Path from "path";
 import nconf from "nconf";
 
 const INTERCOM_SNAPSHOT_URL =
-  "http://192.168.2.15:8081";
+  "http://192.168.2.15:8081/stream.jpeg";
 const GATE_SNAPSHOT_URL =
-  "http://192.168.2.15:8084";
+  "http://192.168.2.15:8084/stream.jpeg";
 const INTERCOM_STREAM_URL = "http://192.168.2.15:8081";
 const GATE_STREAM_URL = "http://192.168.2.15:8084";
 dotenv_config();
