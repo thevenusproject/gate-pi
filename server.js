@@ -320,7 +320,7 @@ async function setupTelegram() {
         deleteImage(imagePath);
         throw e;
       });
-    await deleteImage(imagePath);
+    // await deleteImage(imagePath);
   });
   telegraf.command("notify_on_ext_trigger", async (ctx) => {
     const newValue = !getSetting({ setting: "shouldNotifyOnExtTrigger" });
