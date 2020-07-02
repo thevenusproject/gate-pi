@@ -306,6 +306,7 @@ async function setupTelegram() {
   });
   telegraf.command("intercom_snapshot", async (ctx) => {
     const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL, type: INTERCOM }).catch(e => console.log('err in img download', e));
+    console.log('imagePath', imagePath)
     await ctx
       .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
       .catch((e) => {
