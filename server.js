@@ -305,7 +305,7 @@ async function setupTelegram() {
     ctx.reply("Gate cycling");
   });
   telegraf.command("intercom_snapshot", async (ctx) => {
-    const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL, type: INTERCOM }).catch(e => console.log('err in img download', e));
+    const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL, imageType: INTERCOM }).catch(e => console.log('err in img download', e));
     console.log('imagePath', imagePath)
     await ctx
       .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
@@ -316,7 +316,7 @@ async function setupTelegram() {
     await deleteImage(imagePath);
   });
   telegraf.command("gate_snapshot", async (ctx) => {
-    const imagePath = await downloadImage({ url: GATE_SNAPSHOT_URL, type: GATE }).catch(e => console.log('err in img download', e));
+    const imagePath = await downloadImage({ url: GATE_SNAPSHOT_URL, imageType: GATE }).catch(e => console.log('err in img download', e));
     await ctx
       .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
       .catch((e) => {
@@ -413,8 +413,8 @@ async function sendTelegramAdminImage(imagePath, caption) {
 }
 
 async function camerasSnapshot() {
-  const intercomImagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL, type: INTERCOM }).catch(e => console.warn('err getting intercom image', e));
-  const gateImagePath = await downloadImage({ url: GATE_SNAPSHOT_URL, type: GATE }).catch(e => console.warn('err getting gate image', e));
+  const intercomImagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL, imageType: INTERCOM }).catch(e => console.warn('err getting intercom image', e));
+  const gateImagePath = await downloadImage({ url: GATE_SNAPSHOT_URL, imageType: GATE }).catch(e => console.warn('err getting gate image', e));
   if (
     getSetting({ setting: "shouldNotifyOnExtTrigger" }) &&
     getSetting({ setting: "extTriggerEnabled" })
@@ -441,19 +441,21 @@ async function camerasSnapshot() {
   await deleteImage(gateImagePath);
 }
 
-async function downloadImage({ url, type = '' }) {
+async function downloadImage({ url, imageType = '' }) {
   // const path = `${__dirname}/intercom_photos/${Date.now()}.jpg`;
   const imagePath = Path.resolve(
     __dirname,
     "intercom_photos",
-    `${type || ''}${Date.now()}.jpg`
+    `${imageType}${Date.now()}.jpg`
   );
+  console.log('imagePath in downloadImage',imagePath)
   const writer = fs.createWriteStream(imagePath);
   const response = await axios({
     url,
     method: "GET",
     responseType: "stream",
   });
+  console.log('imagePath in downloadImage',imagePath)
   response.data.pipe(writer);
   return new Promise((resolve, reject) => {
     writer.on("finish", (res) => {
