@@ -305,7 +305,7 @@ async function setupTelegram() {
     ctx.reply("Gate cycling");
   });
   telegraf.command("intercom_snapshot", async (ctx) => {
-    const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL, type: INTERCOM });
+    const imagePath = await downloadImage({ url: INTERCOM_SNAPSHOT_URL, type: INTERCOM }).catch(e => console.log('err in img download', e));
     await ctx
       .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
       .catch((e) => {
@@ -315,7 +315,7 @@ async function setupTelegram() {
     await deleteImage(imagePath);
   });
   telegraf.command("gate_snapshot", async (ctx) => {
-    const imagePath = await downloadImage({ url: GATE_SNAPSHOT_URL, type: GATE });
+    const imagePath = await downloadImage({ url: GATE_SNAPSHOT_URL, type: GATE }).catch(e => console.log('err in img download', e));
     await ctx
       .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
       .catch((e) => {
