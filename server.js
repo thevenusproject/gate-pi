@@ -23,10 +23,10 @@ const {
 } = process.env;
 const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messages
 const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation
-var blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN, {port: 80});
-blynk.on("error", (err) => {
-  console.error("Blynk error event", err);
-});
+// var blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN, {port: 80});
+// blynk.on("error", (err) => {
+//   console.error("Blynk error event", err);
+// });
 
 const INTERCOM = 'INTERCOM';
 const GATE = 'GATE';
@@ -55,14 +55,14 @@ const DISABLE_BUTTON_PIN = 33;
 const OPEN_PIN = 35;
 const EXTERNAL_SENSOR_SAMPLE_PIN = 16;
 
-const v1 = new blynk.VirtualPin(1); // Cycle gate
-const v2 = new blynk.VirtualPin(2); // Disable button
-const v3 = new blynk.VirtualPin(3); // Open gate
-const v4 = new blynk.VirtualPin(4); // read external sensor
-const v5 = new blynk.VirtualPin(5); //  shouldNotifyOnExtTrigger
-const v6 = new blynk.VirtualPin(6); //  extTriggerEnabled
+// const v1 = new blynk.VirtualPin(1); // Cycle gate
+// const v2 = new blynk.VirtualPin(2); // Disable button
+// const v3 = new blynk.VirtualPin(3); // Open gate
+// const v4 = new blynk.VirtualPin(4); // read external sensor
+// const v5 = new blynk.VirtualPin(5); //  shouldNotifyOnExtTrigger
+// const v6 = new blynk.VirtualPin(6); //  extTriggerEnabled
 // const v7 = new blynk.VirtualPin(7);    //  keep gate open
-const blynkRPiReboot = new blynk.VirtualPin(20); // Setup Reboot Button
+// const blynkRPiReboot = new blynk.VirtualPin(20); // Setup Reboot Button
 
 const { promise: gpiop } = gpio;
 // Relay GPIOs - 31 33 35 37 (physical pin #)
@@ -106,79 +106,79 @@ async function unopenGate() {
 }
 
 // Blynk
-async function setupBlynkPins() {
-  v1.on("write", async function (params) {
-    // Cycle gate
-    writePinFromBlynk({ pin: CYCLE_PIN, params });
-  });
-  v2.on("write", async function (params) {
-    // Disable button
-    writePinFromBlynk({ pin: DISABLE_BUTTON_PIN, params });
-  });
-  v3.on("write", async function (params) {
-    // Open gate
-    writePinFromBlynk({ pin: OPEN_PIN, params });
-  });
-  v4.on("read", async function () {
-    // read external sensor
-    readPinFromBlynk({
-      gpioPin: EXTERNAL_SENSOR_SAMPLE_PIN,
-      blynkPin: 4,
-    }).catch();
-  });
-  v5.on("read", async function (params) {
-    // read shouldNotifyOnExtTrigger
-    blynk.virtualWrite(5, getSetting({ setting: "shouldNotifyOnExtTrigger" }));
-  });
-  v5.on("write", async function (params) {
-    // write shouldNotifyOnExtTrigger
-    saveSetting({
-      setting: "shouldNotifyOnExtTrigger",
-      value: _.get(params, "[0]") !== "0",
-    });
-  });
-  v6.on("read", async function (params) {
-    // read extTriggerEnabled
-    blynk.virtualWrite(5, getSetting({ setting: "extTriggerEnabled" }));
-  });
-  v6.on("write", async function (params) {
-    // write extTriggerEnabled
-    saveSetting({
-      setting: "extTriggerEnabled",
-      value: _.get(params, "[0]") !== "0",
-    });
-  });
-  blynkRPiReboot.on("write", function (params) {
-    // Watches for V20 Button
-    console.log("blynkRPiReboot", params)
-
-    if (_.get(params, "[0]") !== "0") {
-      // Runs the CLI command if the button on V10 is pressed
-      // reboot - sudo /sbin/reboot
-      exec("sudo /bin/systemctl restart GateOpener.service", function (err, stdout, stderr) {
-        if (err) console.log(stderr);
-        else console.log(stdout);
-      });
-    }
-  });
-}
-
-function writePinFromBlynk({ pin, params }) {
-  console.log("writePinFromBlynk", params);
-  const value = _.get(params, "[0]") !== "1";
-  writeRPiPin({ pin, value }).catch();
-}
-
-async function readPinFromBlynk({ gpioPin, blynkPin }) {
-  const value = await gpiop
-    .read(gpioPin)
-    .catch((e) => console.log(`error setting pin ${gpioPin}`, e));
-  blynk.virtualWrite(blynkPin, value);
-}
+// async function setupBlynkPins() {
+//   v1.on("write", async function (params) {
+//     // Cycle gate
+//     writePinFromBlynk({ pin: CYCLE_PIN, params });
+//   });
+//   v2.on("write", async function (params) {
+//     // Disable button
+//     writePinFromBlynk({ pin: DISABLE_BUTTON_PIN, params });
+//   });
+//   v3.on("write", async function (params) {
+//     // Open gate
+//     writePinFromBlynk({ pin: OPEN_PIN, params });
+//   });
+//   v4.on("read", async function () {
+//     // read external sensor
+//     readPinFromBlynk({
+//       gpioPin: EXTERNAL_SENSOR_SAMPLE_PIN,
+//       blynkPin: 4,
+//     }).catch();
+//   });
+//   v5.on("read", async function (params) {
+//     // read shouldNotifyOnExtTrigger
+//     blynk.virtualWrite(5, getSetting({ setting: "shouldNotifyOnExtTrigger" }));
+//   });
+//   v5.on("write", async function (params) {
+//     // write shouldNotifyOnExtTrigger
+//     saveSetting({
+//       setting: "shouldNotifyOnExtTrigger",
+//       value: _.get(params, "[0]") !== "0",
+//     });
+//   });
+//   v6.on("read", async function (params) {
+//     // read extTriggerEnabled
+//     blynk.virtualWrite(5, getSetting({ setting: "extTriggerEnabled" }));
+//   });
+//   v6.on("write", async function (params) {
+//     // write extTriggerEnabled
+//     saveSetting({
+//       setting: "extTriggerEnabled",
+//       value: _.get(params, "[0]") !== "0",
+//     });
+//   });
+//   blynkRPiReboot.on("write", function (params) {
+//     // Watches for V20 Button
+//     console.log("blynkRPiReboot", params)
+//
+//     if (_.get(params, "[0]") !== "0") {
+//       // Runs the CLI command if the button on V10 is pressed
+//       // reboot - sudo /sbin/reboot
+//       exec("sudo /bin/systemctl restart GateOpener.service", function (err, stdout, stderr) {
+//         if (err) console.log(stderr);
+//         else console.log(stdout);
+//       });
+//     }
+//   });
+// }
+//
+// function writePinFromBlynk({ pin, params }) {
+//   console.log("writePinFromBlynk", params);
+//   const value = _.get(params, "[0]") !== "1";
+//   writeRPiPin({ pin, value }).catch();
+// }
+//
+// async function readPinFromBlynk({ gpioPin, blynkPin }) {
+//   const value = await gpiop
+//     .read(gpioPin)
+//     .catch((e) => console.log(`error setting pin ${gpioPin}`, e));
+//   blynk.virtualWrite(blynkPin, value);
+// }
 
 async function setup() {
   await setupPhysicalPins().catch((e) => killProcess(e));
-  await setupBlynkPins().catch((e) => killProcess(e));
+  // await setupBlynkPins().catch((e) => killProcess(e));
   await setupTelegram().catch((e) => {
     console.log("setupTelegram err ", e);
     killProcess(e);
