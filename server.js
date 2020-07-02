@@ -9,12 +9,6 @@ import fs from "fs";
 import Path from "path";
 import nconf from "nconf";
 
-const INTERCOM_SNAPSHOT_URL =
-  "http://192.168.2.15:8123/api/hassio_ingress/gW3foVt3MDATxG0ZD_mUGYUjxEd_K5UWjlWG1RiOOF8/picture/1/current/?_username=admin&_signature=41059e62c2a4486b9bfedde0feea64fe44dbe0dcg";
-const GATE_SNAPSHOT_URL =
-  "http://192.168.2.15:8123/api/hassio_ingress/gW3foVt3MDATxG0ZD_mUGYUjxEd_K5UWjlWG1RiOOF8/picture/4/current/?_username=admin&_signature=88bdb372cfec302a1b78b1fb24158693a49a64df";
-const INTERCOM_STREAM_URL = "http://192.168.2.15:8081";
-const GATE_STREAM_URL = "http://192.168.2.15:8084";
 dotenv_config();
 // console.log(`Your port is ${process.env.PORT}`); // 3000
 const {
@@ -22,6 +16,10 @@ const {
   GATE_GROUP_CHAT_ID,
   BLYNK_AUTH_TOKEN,
   TELEGRAM_TOKEN,
+  INTERCOM_SNAPSHOT_URL,
+  GATE_SNAPSHOT_URL,
+  INTERCOM_STREAM_URL,
+  GATE_STREAM_URL
 } = process.env;
 const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messages
 const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation
