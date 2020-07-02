@@ -23,7 +23,7 @@ const {
 } = process.env;
 const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messages
 const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation
-var blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN);
+var blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN, {port: 80});
 blynk.on("error", (err) => {
   console.error("Blynk error event", err);
 });
