@@ -1,3 +1,5 @@
+import {config as dotenv_config} from "dotenv"
+dotenv_config()
 export const MY_CHAT_ID = process.env.MY_CHAT_ID || '';
 export const GATE_GROUP_CHAT_ID = process.env.GATE_GROUP_CHAT_ID || '';
 export const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || '';

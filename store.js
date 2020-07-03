@@ -3,7 +3,6 @@ import fs from "fs"
 import { config as dotenv_config } from "dotenv";
 
 export function initStore() {
-  dotenv_config();
   //
   // Setup nconf to use (in-order):
   //   1. Command-line arguments
