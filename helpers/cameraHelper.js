@@ -5,8 +5,7 @@ import axios from "axios"
 export async function downloadImage({ url, imageType = '' }) {
   // const path = `${__dirname}/photos/${Date.now()}.jpg`;
   const imagePath = Path.resolve(
-    __dirname,
-    "photos",
+    "./photos",
     `${imageType}${Date.now()}.jpg`
   );
   const writer = fs.createWriteStream(imagePath);

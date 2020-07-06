@@ -163,13 +163,13 @@ export async function camerasSnapshot() {
     getSetting({ setting: "shouldNotifyOnExtTrigger" }) &&
     getSetting({ setting: "extTriggerEnabled" })
   ) {
-    await sendTelegramGroupImage(intercomImagePath, INTERCOM_STREAM_URL).catch(
+    if (intercomImagePath) await sendTelegramGroupImage(intercomImagePath, INTERCOM_STREAM_URL).catch(
       (e) => {
         deleteImage(intercomImagePath);
         throw e;
       }
     );
-    await sendTelegramGroupImage(gateImagePath, GATE_STREAM_URL).catch((e) => {
+    if (gateImagePath) await sendTelegramGroupImage(gateImagePath, GATE_STREAM_URL).catch((e) => {
       deleteImage(gateImagePath);
       throw e;
     });

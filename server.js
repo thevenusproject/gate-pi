@@ -58,11 +58,7 @@ async function externalSensorPolling() {
                   console.log("err camerasSnapshot", e)
                 );
               } else {
-                await sendTelegramAdminMessage(
-                  extTriggerEnabled
-                    ? response
-                    : "Ext sensor was triggered but opening is disabled"
-                ).catch((e) =>
+                await sendTelegramAdminMessage(response).catch((e) =>
                   console.log(
                     "extTriggerEnabled",
                     extTriggerEnabled,
