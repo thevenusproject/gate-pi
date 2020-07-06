@@ -37,7 +37,8 @@ export async function setupBlynk() {
   const v5 = new blynk.VirtualPin(5); //  shouldNotifyOnExtTrigger
   const v6 = new blynk.VirtualPin(6); //  extTriggerEnabled
   const v7 = new blynk.VirtualPin(7);    //  keep gate open
-  const blynkRPiReboot = new blynk.VirtualPin(20); // Setup Reboot Button
+  const blynkGateOpenerRestart = new blynk.VirtualPin(20); // Setup Reboot Button
+  const blynkGateOpenerReboot = new blynk.VirtualPin(21); // Setup Reboot Button
   v1.on("write", async function (params) {
     // Cycle gate
     writePinFromBlynk({ pin: CYCLE_PIN, params });
@@ -79,14 +80,27 @@ export async function setupBlynk() {
       value: _.get(params, "[0]") !== "0",
     });
   });
-  blynkRPiReboot.on("write", function (params) {
+  blynkGateOpenerRestart.on("write", function (params) {
     // Watches for V20 Button
-    console.log("blynkRPiReboot", params)
+    console.log("blynkGateOpenerRestart", params)
 
     if (_.get(params, "[0]") !== "0") {
       // Runs the CLI command if the button on V10 is pressed
       // reboot - sudo /sbin/reboot
-      exec("sudo /bin/systemctl restart GateOpener.service", function (err, stdout, stderr) {
+      exec("pm2 restart 'Gate Opener'", function (err, stdout, stderr) {
+        if (err) console.log(stderr);
+        else console.log(stdout);
+      });
+    }
+  });
+  blynkGateOpenerReboot.on("write", function (params) {
+    // Watches for V21 Button
+    console.log("blynkGateOpenerReboot", params)
+
+    if (_.get(params, "[0]") !== "0") {
+      // Runs the CLI command if the button on V10 is pressed
+      // reboot - sudo /sbin/reboot
+      exec("sudo /sbin/reboot", function (err, stdout, stderr) {
         if (err) console.log(stderr);
         else console.log(stdout);
       });
