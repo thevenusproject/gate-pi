@@ -39,7 +39,7 @@ export async function setupBlynk() {
   const v7 = new blynk.VirtualPin(7);    //  keep gate open
   const blynkGateOpenerRestart = new blynk.VirtualPin(20); // Setup Reboot Button
   const blynkGateOpenerReboot = new blynk.VirtualPin(21); // Setup Reboot Button
-  const blynkGitPullRestart = new blynk.VirtualPin(21); // Setup Reboot Button
+  const blynkGitPullRestart = new blynk.VirtualPin(22); // Setup Reboot Button
   v1.on("write", async function (params) {
     // Cycle gate
     writePinFromBlynk({ pin: CYCLE_PIN, params });
