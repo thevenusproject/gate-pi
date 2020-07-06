@@ -1,6 +1,6 @@
 import Telegraf, { Telegram } from "telegraf";
 import _ from "lodash";
-import { openGateTemporarily, openGate, unopenGate, cycleGate } from "./rpiHelper";
+import {openGateTemporarily, openGate, unopenGate, cycleGate, gitPull, pm2Restart} from "./rpiHelper";
 import { deleteImage, downloadImage } from "./cameraHelper";
 import {
   INTERCOM,
@@ -139,6 +139,11 @@ export async function setupTelegram() {
     const message = text.replace("/echo_to_group ", "");
     if (message && message !== "/echo_to_group")
       sendTelegramGroupMessage(message);
+  });
+  telegraf.command("git_pull_restart_pm2", async (ctx) => {
+    await gitPull().catch(e => ctx.reply(e));
+    await pm2Restart().catch(e => ctx.reply(e));
+    await ctx.reply("Git pulled and pm2 restarted");
   });
   let response = pickRandomFromArray([
     "I'm back online, how long was I out? Minutes? Days? Years???",

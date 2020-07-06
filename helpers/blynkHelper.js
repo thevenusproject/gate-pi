@@ -5,7 +5,7 @@ import {
   DISABLE_BUTTON_PIN,
   EXTERNAL_SENSOR_SAMPLE_PIN,
   OPEN_PIN,
-  readRPiPin
+  readRPiPin, gitPull, pm2Restart
 } from "./rpiHelper";
 import { exec } from "child_process";
 import {saveSetting, getSetting} from "../store"
@@ -39,6 +39,7 @@ export async function setupBlynk() {
   const v7 = new blynk.VirtualPin(7);    //  keep gate open
   const blynkGateOpenerRestart = new blynk.VirtualPin(20); // Setup Reboot Button
   const blynkGateOpenerReboot = new blynk.VirtualPin(21); // Setup Reboot Button
+  const blynkGitPullRestart = new blynk.VirtualPin(21); // Setup Reboot Button
   v1.on("write", async function (params) {
     // Cycle gate
     writePinFromBlynk({ pin: CYCLE_PIN, params });
@@ -96,7 +97,6 @@ export async function setupBlynk() {
   blynkGateOpenerReboot.on("write", function (params) {
     // Watches for V21 Button
     console.log("blynkGateOpenerReboot", params)
-
     if (_.get(params, "[0]") !== "0") {
       // Runs the CLI command if the button on V10 is pressed
       // reboot - sudo /sbin/reboot
@@ -104,6 +104,14 @@ export async function setupBlynk() {
         if (err) console.log(stderr);
         else console.log(stdout);
       });
+    }
+  });
+  blynkGitPullRestart.on("write", async function (params) {
+    // Watches for V22 Button
+    if (_.get(params, "[0]") !== "0") {
+      console.log("blynkGitPullRestart", params);
+      await gitPull()
+      await pm2Restart()
     }
   });
 }

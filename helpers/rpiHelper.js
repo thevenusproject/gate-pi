@@ -1,6 +1,7 @@
-import _ from "lodash"
+import _ from "lodash";
 import gpio from "rpi-gpio";
-import {getSetting} from "../store"
+import { getSetting } from "../store";
+import { exec } from "child_process";
 
 export const CYCLE_PIN = 31;
 export const DISABLE_BUTTON_PIN = 33;
@@ -78,4 +79,42 @@ export async function sampleExternalSensor() {
 
 export async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function gitPull() {
+  console.log("gitPull");
+  return new Promise((res, rej) => {
+    exec("/usr/bin/git -C /root/dev/gate-pi pull", function (
+      err,
+      stdout,
+      stderr
+    ) {
+      if (err) {
+        console.log(stderr);
+        rej(err);
+      } else {
+        console.log(stdout);
+        res();
+      }
+    });
+  });
+}
+
+export async function pm2Restart() {
+  console.log("pm2Restart");
+  return new Promise((res, rej) => {
+    exec("/usr/local/bin/pm2 restart GateOpener", function (
+      err,
+      stdout,
+      stderr
+    ) {
+      if (err) {
+        console.log(stderr);
+        rej(err);
+      } else {
+        console.log(stdout);
+        res();
+      }
+    });
+  });
 }
