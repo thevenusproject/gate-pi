@@ -12,9 +12,9 @@ import {
   GATE_SNAPSHOT_URL,
   INTERCOM_STREAM_URL,
   GATE_STREAM_URL
-} from "./constants";
-import {saveSetting, getSetting} from "./store"
-import {pickRandomFromArray} from "./utils"
+} from "../constants";
+import {saveSetting, getSetting} from "../store"
+import {pickRandomFromArray} from "../utils"
 
 const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messages
 const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation

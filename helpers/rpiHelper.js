@@ -1,6 +1,6 @@
 import _ from "lodash"
 import gpio from "rpi-gpio";
-import {getSetting} from "./store"
+import {getSetting} from "../store"
 
 export const CYCLE_PIN = 31;
 export const DISABLE_BUTTON_PIN = 33;

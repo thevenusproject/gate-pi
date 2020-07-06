@@ -8,21 +8,25 @@ import {
   readRPiPin
 } from "./rpiHelper";
 import { exec } from "child_process";
-import {saveSetting, getSetting} from "./store"
+import {saveSetting, getSetting} from "../store"
 
 const {
-  BLYNK_AUTH_TOKEN
+  BLYNK_AUTH_TOKEN,
+  BLYNK_SERVER
 } = process.env;
 // For Local Server:
-// const blynk = new Blynk.Blynk(AUTH, options = {
+// const blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN, options = {
 //   connector : new Blynk.TcpClient( options = { addr: "xxx.xxx.xxx.xxx", port: 8080 } )  // This takes all the info and directs the connection to you Local Server.
 // });
 
 var blynk;
 
 // Blynk
-async function setupBlynk() {
-  blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN, {port: 80});
+export async function setupBlynk() {
+  // blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN, {port: 80});
+  blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN, {
+    connector : new Blynk.TcpClient( { addr: BLYNK_SERVER, port: 8080 } )  // This takes all the info and directs the connection to you Local Server.
+  });
   blynk.on("error", (err) => {
     console.error("Blynk error event", err);
   });

@@ -1,14 +1,15 @@
 import _ from "lodash";
 import {initStore, getSetting} from './store';
 initStore();
-import {sampleExternalSensor, setupPhysicalPins, sleep, openGateTemporarily} from './rpiHelper';
-import {setupTelegram, sendTelegramGroupMessage, sendTelegramAdminMessage} from "./telegramHelper";
-import {camerasSnapshot} from "./telegramHelper";
-import {killProcess, pickRandomFromArray} from "./utils"
+import {sampleExternalSensor, setupPhysicalPins, sleep, openGateTemporarily} from './helpers/rpiHelper';
+import {setupTelegram, sendTelegramGroupMessage, sendTelegramAdminMessage} from "./helpers/telegramHelper";
+import {camerasSnapshot} from "./helpers/telegramHelper";
+import {killProcess, pickRandomFromArray} from "./utils";
+import {setupBlynk} from "./helpers/blynkHelper";
 
 async function init() {
   await setupPhysicalPins().catch((e) => killProcess(e));
-  // await setupBlynk().catch((e) => killProcess(e));
+  await setupBlynk().catch((e) => killProcess(e));
   await setupTelegram().catch((e) => {
     console.log("setupTelegram err ", e);
     killProcess(e);
