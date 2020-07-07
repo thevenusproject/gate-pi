@@ -1,7 +1,7 @@
-import _ from "lodash";
-import gpio from "rpi-gpio";
-import { getSetting } from "../store";
-import { exec } from "child_process";
+import _ from 'lodash';
+import gpio from 'rpi-gpio';
+import { getSetting } from '../store';
+import { exec } from 'child_process';
 
 export const CYCLE_PIN = 31;
 export const DISABLE_BUTTON_PIN = 33;
@@ -13,7 +13,7 @@ const { promise: gpiop } = gpio;
 // gpiop.setup(31, gpio.DIR_HIGH).then(() => main()).catch(e => console.warn(e));
 
 export async function setupPhysicalPins() {
-  console.log("setupPhysicalPins");
+  console.log('setupPhysicalPins');
   await gpiop
     .setup(EXTERNAL_SENSOR_SAMPLE_PIN, gpio.DIR_IN)
     .catch((e) => console.warn(e)); // Open
@@ -61,7 +61,7 @@ export async function cycleGate() {
 }
 
 export async function openGateTemporarily() {
-  if (!getSetting({ setting: "keepOpen" }))
+  if (!getSetting({ setting: 'keepOpen' }))
     return momentaryRelaySet({ pin: OPEN_PIN, value: false });
 }
 
@@ -82,9 +82,9 @@ export async function sleep(ms) {
 }
 
 export async function gitPull() {
-  console.log("gitPull");
+  console.log('gitPull');
   return new Promise((res, rej) => {
-    exec("/usr/bin/git -C /root/dev/gate-pi pull", function (
+    exec('/usr/bin/git -C /root/dev/gate-pi pull', function (
       err,
       stdout,
       stderr
@@ -101,9 +101,9 @@ export async function gitPull() {
 }
 
 export async function pm2Restart() {
-  console.log("pm2Restart");
+  console.log('pm2Restart');
   return new Promise((res, rej) => {
-    exec("/usr/local/bin/pm2 restart GateOpener", function (
+    exec('/usr/local/bin/pm2 restart GateOpener', function (
       err,
       stdout,
       stderr

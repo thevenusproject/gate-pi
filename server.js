@@ -1,17 +1,26 @@
-import _ from "lodash";
-import {initStore, getSetting} from './store';
+import _ from 'lodash';
+import { initStore, getSetting } from './store';
 initStore();
-import {sampleExternalSensor, setupPhysicalPins, sleep, openGateTemporarily} from './helpers/rpiHelper';
-import {setupTelegram, sendTelegramGroupMessage, sendTelegramAdminMessage} from "./helpers/telegramHelper";
-import {camerasSnapshot} from "./helpers/telegramHelper";
-import {killProcess, pickRandomFromArray} from "./utils";
-import {setupBlynk} from "./helpers/blynkHelper";
+import {
+  sampleExternalSensor,
+  setupPhysicalPins,
+  sleep,
+  openGateTemporarily,
+} from './helpers/rpiHelper';
+import {
+  setupTelegram,
+  sendTelegramGroupMessage,
+  sendTelegramAdminMessage,
+} from './helpers/telegramHelper';
+import { camerasSnapshot } from './helpers/telegramHelper';
+import { killProcess, pickRandomFromArray } from './utils';
+import { setupBlynk } from './helpers/blynkHelper';
 
 async function init() {
   await setupPhysicalPins().catch((e) => killProcess(e));
   await setupBlynk().catch((e) => killProcess(e));
   await setupTelegram().catch((e) => {
-    console.log("setupTelegram err ", e);
+    console.log('setupTelegram err ', e);
     killProcess(e);
   });
   externalSensorPolling().catch((e) => killProcess(e));
@@ -29,9 +38,9 @@ async function externalSensorPolling() {
     if (sensorIsBlocked) {
       // console.log("Ext. sensor triggered. counter ", triggerCounter);
       if (triggerCounter >= COUNT_TRIGGER) {
-        const extTriggerEnabled = getSetting({ setting: "extTriggerEnabled" });
+        const extTriggerEnabled = getSetting({ setting: 'extTriggerEnabled' });
         const shouldNotifyOnExtTrigger = getSetting({
-          setting: "shouldNotifyOnExtTrigger",
+          setting: 'shouldNotifyOnExtTrigger',
         });
         // console.log("Ext. sensor triggered. Opening gate");
         triggerCounter = 0;
@@ -39,11 +48,11 @@ async function externalSensorPolling() {
           await openGateTemporarily();
           const day = new Date().getDay();
           let response = pickRandomFromArray([
-            "External sensor. Opening gate",
+            'External sensor. Opening gate',
             // "Ext. sensor triggered, maybe a new package?? So exciting..",
             // "Ext. sensor triggered, is Rox checking for mail again?",
           ]);
-          if (day === 0) response = "External sensor. Tomorrow is garbage day!";
+          if (day === 0) response = 'External sensor. Tomorrow is garbage day!';
           // if (day === 6)
           //   response =
           //     "External sensor. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus";
@@ -52,25 +61,25 @@ async function externalSensorPolling() {
             if (extTriggerEnabled) {
               if (shouldNotifyOnExtTrigger) {
                 await sendTelegramGroupMessage(response).catch((e) =>
-                  console.log("err sendTelegramGroupMessage", e)
+                  console.log('err sendTelegramGroupMessage', e)
                 );
                 await camerasSnapshot().catch((e) =>
-                  console.log("err camerasSnapshot", e)
+                  console.log('err camerasSnapshot', e)
                 );
               } else {
                 await sendTelegramAdminMessage(response).catch((e) =>
                   console.log(
-                    "extTriggerEnabled",
+                    'extTriggerEnabled',
                     extTriggerEnabled,
-                    "err sendTelegramAdminMessage",
+                    'err sendTelegramAdminMessage',
                     e
                   )
                 );
                 await camerasSnapshot().catch((e) =>
                   console.log(
-                    "extTriggerEnabled",
+                    'extTriggerEnabled',
                     extTriggerEnabled,
-                    "err camerasSnapshot",
+                    'err camerasSnapshot',
                     e
                   )
                 );
@@ -89,4 +98,4 @@ async function externalSensorPolling() {
   }
 }
 
-init().catch((e) => console.log("err in setup", e));
+init().catch((e) => console.log('err in setup', e));

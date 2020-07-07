@@ -1,7 +1,14 @@
-import Telegraf, { Telegram } from "telegraf";
-import _ from "lodash";
-import {openGateTemporarily, openGate, unopenGate, cycleGate, gitPull, pm2Restart} from "./rpiHelper";
-import { deleteImage, downloadImage } from "./cameraHelper";
+import Telegraf, { Telegram } from 'telegraf';
+import _ from 'lodash';
+import {
+  openGateTemporarily,
+  openGate,
+  unopenGate,
+  cycleGate,
+  gitPull,
+  pm2Restart,
+} from './rpiHelper';
+import { deleteImage, downloadImage } from './cameraHelper';
 import {
   INTERCOM,
   GATE,
@@ -11,10 +18,10 @@ import {
   INTERCOM_SNAPSHOT_URL,
   GATE_SNAPSHOT_URL,
   INTERCOM_STREAM_URL,
-  GATE_STREAM_URL
-} from "../constants";
-import {saveSetting, getSetting} from "../store"
-import {pickRandomFromArray} from "../utils"
+  GATE_STREAM_URL,
+} from '../constants';
+import { saveSetting, getSetting } from '../store';
+import { pickRandomFromArray } from '../utils';
 
 const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messages
 const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation
@@ -41,31 +48,32 @@ export async function sendTelegramAdminImage(imagePath, caption) {
 
 export async function setupTelegram() {
   telegraf.start((ctx) => {
-    ctx.reply("Welcome!");
+    ctx.reply('Welcome!');
   });
   telegraf.use(async (ctx, next) => {
-    const chat_id = _.get(ctx, "update.message.chat.id") + "";
+    const chat_id = _.get(ctx, 'update.message.chat.id') + '';
     if (chat_id && (chat_id === MY_CHAT_ID || chat_id === GATE_GROUP_CHAT_ID))
       next();
     else if (chat_id)
       console.warn(
         `Telegram Message from unauthorized chat! Chat ID ${chat_id}`
       );
-    else console.log("Message irrelevant to the bot");
+    else console.log('Message irrelevant to the bot');
   });
-  telegraf.command("open", async (ctx) => {
+  telegraf.command('open', async (ctx) => {
     await openGateTemporarily();
-    await ctx.reply("Gate is opening");
+    await ctx.reply('Gate is opening');
   });
-  telegraf.command("cycle", async (ctx) => {
+  telegraf.command('cycle', async (ctx) => {
     await cycleGate();
-    await ctx.reply("Gate cycling");
+    await ctx.reply('Gate cycling');
   });
-  telegraf.command("intercom_snapshot", async (ctx) => {
-    const imagePath = await downloadImage({
-      url: INTERCOM_SNAPSHOT_URL,
-      imageType: INTERCOM,
-    }).catch((e) => console.log("err in img download", e)) + '';
+  telegraf.command('intercom_snapshot', async (ctx) => {
+    const imagePath =
+      (await downloadImage({
+        url: INTERCOM_SNAPSHOT_URL,
+        imageType: INTERCOM,
+      }).catch((e) => console.log('err in img download', e))) + '';
     await ctx
       .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
       .catch((e) => {
@@ -74,11 +82,12 @@ export async function setupTelegram() {
       });
     await deleteImage(imagePath);
   });
-  telegraf.command("gate_snapshot", async (ctx) => {
-    const imagePath = await downloadImage({
-      url: GATE_SNAPSHOT_URL,
-      imageType: GATE,
-    }).catch((e) => console.log("err in img download", e)) + '';
+  telegraf.command('gate_snapshot', async (ctx) => {
+    const imagePath =
+      (await downloadImage({
+        url: GATE_SNAPSHOT_URL,
+        imageType: GATE,
+      }).catch((e) => console.log('err in img download', e))) + '';
     await ctx
       .replyWithPhoto({ source: imagePath }, { caption: GATE_STREAM_URL })
       .catch((e) => {
@@ -87,69 +96,69 @@ export async function setupTelegram() {
       });
     await deleteImage(imagePath);
   });
-  telegraf.command("notify_on_ext_trigger", async (ctx) => {
-    const newValue = !getSetting({ setting: "shouldNotifyOnExtTrigger" });
-    await saveSetting({ setting: "shouldNotifyOnExtTrigger", value: newValue });
+  telegraf.command('notify_on_ext_trigger', async (ctx) => {
+    const newValue = !getSetting({ setting: 'shouldNotifyOnExtTrigger' });
+    await saveSetting({ setting: 'shouldNotifyOnExtTrigger', value: newValue });
     await ctx.reply(
-      `Notifications on external trigger are ${newValue ? "ON" : "OFF"}`
+      `Notifications on external trigger are ${newValue ? 'ON' : 'OFF'}`
     );
   });
-  telegraf.command("toggle_opening_on_ext_sensor", async (ctx) => {
-    const newValue = !getSetting({ setting: "extTriggerEnabled" });
-    await saveSetting({ setting: "extTriggerEnabled", value: newValue });
+  telegraf.command('toggle_opening_on_ext_sensor', async (ctx) => {
+    const newValue = !getSetting({ setting: 'extTriggerEnabled' });
+    await saveSetting({ setting: 'extTriggerEnabled', value: newValue });
     await ctx.reply(
       `Opening the gate on external trigger is ${
-        newValue ? "ENABLED" : "DISABLED"
+        newValue ? 'ENABLED' : 'DISABLED'
       }`
     );
   });
-  telegraf.command("toggle_keep_open", async (ctx) => {
-    const newValue = !getSetting({ setting: "keepOpen" });
-    await saveSetting({ setting: "keepOpen", value: newValue }).catch(() =>
-      ctx.reply("failed saving setting keepOpen")
+  telegraf.command('toggle_keep_open', async (ctx) => {
+    const newValue = !getSetting({ setting: 'keepOpen' });
+    await saveSetting({ setting: 'keepOpen', value: newValue }).catch(() =>
+      ctx.reply('failed saving setting keepOpen')
     );
     if (!!newValue) openGate().catch();
     else await unopenGate();
-    await ctx.reply(`"Keep the gate open" is ${newValue ? "ON" : "OFF"}`);
+    await ctx.reply(`"Keep the gate open" is ${newValue ? 'ON' : 'OFF'}`);
   });
-  telegraf.command("status", async (ctx) => {
+  telegraf.command('status', async (ctx) => {
     const status =
       `Notify on external sensor is ${
-        getSetting({ setting: "shouldNotifyOnExtTrigger" }) ? "ON" : "OFF"
+        getSetting({ setting: 'shouldNotifyOnExtTrigger' }) ? 'ON' : 'OFF'
       }\n` +
       `External sensor is ${
-        getSetting({ setting: "extTriggerEnabled" }) ? "ENABLED" : "DISABLED"
+        getSetting({ setting: 'extTriggerEnabled' }) ? 'ENABLED' : 'DISABLED'
       }\n` +
-      `Keep gate open is ${getSetting({ setting: "keepOpen" }) ? "ON" : "OFF"}`;
+      `Keep gate open is ${getSetting({ setting: 'keepOpen' }) ? 'ON' : 'OFF'}`;
     await ctx.reply(status);
   });
-  telegraf.command("is_alive", async (ctx) => {
+  telegraf.command('is_alive', async (ctx) => {
     const responses = [
       "I'm still alive. Pretty boring here though...",
       "There's a package for you here! Not really, just want some company, wink wink",
-      "Hmm hmm, are YOU still alive?",
+      'Hmm hmm, are YOU still alive?',
       "I think raccoons are planning a coup. If I'm silent for hours, something is probably wrong",
-      "Corcen here!",
+      'Corcen here!',
     ];
     const response = pickRandomFromArray(responses);
     await ctx.reply(response);
   });
-  telegraf.command("echo_to_group", (ctx) => {
-    const text = _.get(ctx, "update.message.text") || "";
-    const message = text.replace("/echo_to_group ", "");
-    if (message && message !== "/echo_to_group")
+  telegraf.command('echo_to_group', (ctx) => {
+    const text = _.get(ctx, 'update.message.text') || '';
+    const message = text.replace('/echo_to_group ', '');
+    if (message && message !== '/echo_to_group')
       sendTelegramGroupMessage(message);
   });
-  telegraf.command("git_pull_restart_pm2", async (ctx) => {
-    await gitPull().catch(e => ctx.reply(e));
-    await pm2Restart().catch(e => ctx.reply(e));
-    await ctx.reply("Git pulled and pm2 restarted");
+  telegraf.command('git_pull_restart_pm2', async (ctx) => {
+    await gitPull().catch((e) => ctx.reply(e));
+    await pm2Restart().catch((e) => ctx.reply(e));
+    await ctx.reply('Git pulled and pm2 restarted');
   });
   let response = pickRandomFromArray([
     "I'm back online, how long was I out? Minutes? Days? Years???",
-    "Reporting back online",
-    "Corcen here, working as usual",
-    "A lovely day to be back online again!",
+    'Reporting back online',
+    'Corcen here, working as usual',
+    'A lovely day to be back online again!',
   ]);
   await sendTelegramAdminMessage(response);
   return telegraf.launch();
@@ -159,25 +168,27 @@ export async function camerasSnapshot() {
   const intercomImagePath = await downloadImage({
     url: INTERCOM_SNAPSHOT_URL,
     imageType: INTERCOM,
-  }).catch((e) => console.warn("err getting intercom image", e));
+  }).catch((e) => console.warn('err getting intercom image', e));
   const gateImagePath = await downloadImage({
     url: GATE_SNAPSHOT_URL,
     imageType: GATE,
-  }).catch((e) => console.warn("err getting gate image", e));
-  if (
-    getSetting({ setting: "shouldNotifyOnExtTrigger" }) &&
-    getSetting({ setting: "extTriggerEnabled" })
-  ) {
-    if (intercomImagePath) await sendTelegramGroupImage(intercomImagePath, INTERCOM_STREAM_URL).catch(
-      (e) => {
+  }).catch((e) => console.warn('err getting gate image', e));
+  if (getSetting({ setting: 'shouldNotifyOnExtTrigger' })) {
+    if (intercomImagePath)
+      await sendTelegramGroupImage(
+        intercomImagePath,
+        INTERCOM_STREAM_URL
+      ).catch((e) => {
         deleteImage(intercomImagePath);
         throw e;
-      }
-    );
-    if (gateImagePath) await sendTelegramGroupImage(gateImagePath, GATE_STREAM_URL).catch((e) => {
-      deleteImage(gateImagePath);
-      throw e;
-    });
+      });
+    if (gateImagePath)
+      await sendTelegramGroupImage(gateImagePath, GATE_STREAM_URL).catch(
+        (e) => {
+          deleteImage(gateImagePath);
+          throw e;
+        }
+      );
   } else {
     await sendTelegramAdminImage(intercomImagePath, INTERCOM_STREAM_URL).catch(
       (e) => {

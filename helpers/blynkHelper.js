@@ -1,19 +1,18 @@
-import Blynk from "blynk-library";
+import Blynk from 'blynk-library';
 import {
   writeRPiPin,
   CYCLE_PIN,
   DISABLE_BUTTON_PIN,
   EXTERNAL_SENSOR_SAMPLE_PIN,
   OPEN_PIN,
-  readRPiPin, gitPull, pm2Restart
-} from "./rpiHelper";
-import { exec } from "child_process";
-import {saveSetting, getSetting} from "../store"
-import _ from 'lodash'
-const {
-  BLYNK_AUTH_TOKEN,
-  BLYNK_SERVER
-} = process.env;
+  readRPiPin,
+  gitPull,
+  pm2Restart,
+} from './rpiHelper';
+import { exec } from 'child_process';
+import { saveSetting, getSetting } from '../store';
+import _ from 'lodash';
+const { BLYNK_AUTH_TOKEN, BLYNK_SERVER } = process.env;
 // For Local Server:
 // const blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN, options = {
 //   connector : new Blynk.TcpClient( options = { addr: "xxx.xxx.xxx.xxx", port: 8080 } )  // This takes all the info and directs the connection to you Local Server.
@@ -25,10 +24,10 @@ var blynk;
 export async function setupBlynk() {
   // blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN, {port: 80});
   blynk = new Blynk.Blynk(BLYNK_AUTH_TOKEN, {
-    connector : new Blynk.TcpClient( { addr: BLYNK_SERVER, port: 8080 } )  // This takes all the info and directs the connection to you Local Server.
+    connector: new Blynk.TcpClient({ addr: BLYNK_SERVER, port: 8080 }), // This takes all the info and directs the connection to you Local Server.
   });
-  blynk.on("error", (err) => {
-    console.error("Blynk error event", err);
+  blynk.on('error', (err) => {
+    console.error('Blynk error event', err);
   });
   const v1 = new blynk.VirtualPin(1); // Cycle gate
   const v2 = new blynk.VirtualPin(2); // Disable button
@@ -36,56 +35,56 @@ export async function setupBlynk() {
   const v4 = new blynk.VirtualPin(4); // read external sensor
   const v5 = new blynk.VirtualPin(5); //  shouldNotifyOnExtTrigger
   const v6 = new blynk.VirtualPin(6); //  extTriggerEnabled
-  const v7 = new blynk.VirtualPin(7);    //  keep gate open
+  const v7 = new blynk.VirtualPin(7); //  keep gate open
   const blynkGateOpenerRestart = new blynk.VirtualPin(20); // Setup Reboot Button
   const blynkGateOpenerReboot = new blynk.VirtualPin(21); // Setup Reboot Button
   const blynkGitPullRestart = new blynk.VirtualPin(22); // Setup Reboot Button
-  v1.on("write", async function (params) {
+  v1.on('write', async function (params) {
     // Cycle gate
     writePinFromBlynk({ pin: CYCLE_PIN, params });
   });
-  v2.on("write", async function (params) {
+  v2.on('write', async function (params) {
     // Disable button
     writePinFromBlynk({ pin: DISABLE_BUTTON_PIN, params });
   });
-  v3.on("write", async function (params) {
+  v3.on('write', async function (params) {
     // Open gate
     writePinFromBlynk({ pin: OPEN_PIN, params });
   });
-  v4.on("read", async function () {
+  v4.on('read', async function () {
     // read external sensor
     readPinFromBlynk({
       gpioPin: EXTERNAL_SENSOR_SAMPLE_PIN,
       blynkPin: 4,
     }).catch();
   });
-  v5.on("read", async function (params) {
+  v5.on('read', async function (params) {
     // read shouldNotifyOnExtTrigger
-    blynk.virtualWrite(5, getSetting({ setting: "shouldNotifyOnExtTrigger" }));
+    blynk.virtualWrite(5, getSetting({ setting: 'shouldNotifyOnExtTrigger' }));
   });
-  v5.on("write", async function (params) {
+  v5.on('write', async function (params) {
     // write shouldNotifyOnExtTrigger
     await saveSetting({
-      setting: "shouldNotifyOnExtTrigger",
-      value: _.get(params, "[0]") !== "0",
+      setting: 'shouldNotifyOnExtTrigger',
+      value: _.get(params, '[0]') !== '0',
     });
   });
-  v6.on("read", async function (params) {
+  v6.on('read', async function (params) {
     // read extTriggerEnabled
-    blynk.virtualWrite(5, getSetting({ setting: "extTriggerEnabled" }));
+    blynk.virtualWrite(5, getSetting({ setting: 'extTriggerEnabled' }));
   });
-  v6.on("write", async function (params) {
+  v6.on('write', async function (params) {
     // write extTriggerEnabled
     await saveSetting({
-      setting: "extTriggerEnabled",
-      value: _.get(params, "[0]") !== "0",
+      setting: 'extTriggerEnabled',
+      value: _.get(params, '[0]') !== '0',
     });
   });
-  blynkGateOpenerRestart.on("write", function (params) {
+  blynkGateOpenerRestart.on('write', function (params) {
     // Watches for V20 Button
-    console.log("blynkGateOpenerRestart", params)
+    console.log('blynkGateOpenerRestart', params);
 
-    if (_.get(params, "[0]") !== "0") {
+    if (_.get(params, '[0]') !== '0') {
       // Runs the CLI command if the button on V10 is pressed
       // reboot - sudo /sbin/reboot
       exec("pm2 restart 'Gate Opener'", function (err, stdout, stderr) {
@@ -94,35 +93,35 @@ export async function setupBlynk() {
       });
     }
   });
-  blynkGateOpenerReboot.on("write", function (params) {
+  blynkGateOpenerReboot.on('write', function (params) {
     // Watches for V21 Button
-    console.log("blynkGateOpenerReboot", params)
-    if (_.get(params, "[0]") !== "0") {
+    console.log('blynkGateOpenerReboot', params);
+    if (_.get(params, '[0]') !== '0') {
       // Runs the CLI command if the button on V10 is pressed
       // reboot - sudo /sbin/reboot
-      exec("sudo /sbin/reboot", function (err, stdout, stderr) {
+      exec('sudo /sbin/reboot', function (err, stdout, stderr) {
         if (err) console.log(stderr);
         else console.log(stdout);
       });
     }
   });
-  blynkGitPullRestart.on("write", async function (params) {
+  blynkGitPullRestart.on('write', async function (params) {
     // Watches for V22 Button
-    if (_.get(params, "[0]") !== "0") {
-      console.log("blynkGitPullRestart", params);
-      await gitPull()
-      await pm2Restart()
+    if (_.get(params, '[0]') !== '0') {
+      console.log('blynkGitPullRestart', params);
+      await gitPull();
+      await pm2Restart();
     }
   });
 }
 
 function writePinFromBlynk({ pin, params }) {
-  console.log("writePinFromBlynk", params);
-  const value = _.get(params, "[0]") !== "1";
+  console.log('writePinFromBlynk', params);
+  const value = _.get(params, '[0]') !== '1';
   writeRPiPin({ pin, value }).catch();
 }
 
 async function readPinFromBlynk({ gpioPin, blynkPin }) {
-  const value = await readRPiPin(gpioPin)
+  const value = await readRPiPin(gpioPin);
   blynk.virtualWrite(blynkPin, value);
 }
