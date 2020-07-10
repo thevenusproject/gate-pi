@@ -70,30 +70,34 @@ export async function setupTelegram() {
   });
   telegraf.command('intercom_snapshot', async (ctx) => {
     const imagePath =
-      (await downloadImage({
+      await downloadImage({
         url: INTERCOM_SNAPSHOT_URL,
         imageType: INTERCOM,
-      }).catch((e) => console.log('err in img download', e))) + '';
-    await ctx
+      }).catch((e) => console.log('err in img download', e.code)) + '';
+    if (imagePath) await ctx
       .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
       .catch((e) => {
-        deleteImage(imagePath);
+        try {
+          deleteImage(imagePath);
+        } catch (e) {}
         throw e;
       });
+    else await ctx.reply('No Image')
     await deleteImage(imagePath);
   });
   telegraf.command('gate_snapshot', async (ctx) => {
     const imagePath =
-      (await downloadImage({
+      await downloadImage({
         url: GATE_SNAPSHOT_URL,
         imageType: GATE,
-      }).catch((e) => console.log('err in img download', e))) + '';
-    await ctx
+      }).catch((e) => console.log('err in img download', e.code)) + '';
+    if (imagePath) await ctx
       .replyWithPhoto({ source: imagePath }, { caption: GATE_STREAM_URL })
       .catch((e) => {
         deleteImage(imagePath);
         throw e;
       });
+    else await ctx.reply('No Image')
     await deleteImage(imagePath);
   });
   telegraf.command('notify_on_ext_trigger', async (ctx) => {
