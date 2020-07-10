@@ -70,37 +70,40 @@ export async function setupTelegram() {
   });
   telegraf.command('intercom_snapshot', async (ctx) => {
     const imagePath =
-      await downloadImage({
+      (await downloadImage({
         url: INTERCOM_SNAPSHOT_URL,
         imageType: INTERCOM,
-      }).catch((e) => console.error('err in img download', e.code)) + '';
-    if (imagePath) await ctx
-      .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
-      .catch((e) => {
-        try {
-          deleteImage(imagePath);
-        } catch (e) {}
-        throw e;
-      });
-    else await ctx.reply('No Image')
-    await deleteImage(imagePath);
+      }).catch((e) => console.error('err in img download', e.code))) + '';
+    if (imagePath) {
+      await ctx
+        .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
+        .catch((e) => {
+          try {
+            deleteImage(imagePath);
+          } catch (e) {}
+          throw e;
+        });
+      await deleteImage(imagePath);
+    } else await ctx.reply('No Image');
   });
   telegraf.command('gate_snapshot', async (ctx) => {
     const imagePath =
-      await downloadImage({
+      (await downloadImage({
         url: GATE_SNAPSHOT_URL,
         imageType: GATE,
-      }).catch((e) => console.error('err in img download', e.code)) + '';
-    if (imagePath) await ctx
-      .replyWithPhoto({ source: imagePath }, { caption: GATE_STREAM_URL })
-      .catch((e) => {
-        try {
-          deleteImage(imagePath);
-        } catch (e) {}
-        throw e;
-      });
-    else await ctx.reply('No Image')
-    await deleteImage(imagePath);
+      }).catch((e) => console.error('err in img download', e.code))) + '';
+    if (imagePath) {
+      await ctx
+        .replyWithPhoto({ source: imagePath }, { caption: GATE_STREAM_URL })
+        .catch((e) => {
+          try {
+            deleteImage(imagePath);
+          } catch (e) {}
+          throw e;
+        });
+
+      await deleteImage(imagePath);
+    } else await ctx.reply('No Image');
   });
   telegraf.command('notify_on_ext_trigger', async (ctx) => {
     const newValue = !getSetting({ setting: 'shouldNotifyOnExtTrigger' });
@@ -185,7 +188,6 @@ export async function camerasSnapshot() {
         intercomImagePath,
         INTERCOM_STREAM_URL
       ).catch((e) => {
-        deleteImage(intercomImagePath);
         throw e;
       });
     if (gateImagePath)
@@ -196,16 +198,20 @@ export async function camerasSnapshot() {
         }
       );
   } else {
-    await sendTelegramAdminImage(intercomImagePath, INTERCOM_STREAM_URL).catch(
-      (e) => {
-        deleteImage(intercomImagePath);
+    if (intercomImagePath) {
+      await sendTelegramAdminImage(intercomImagePath, INTERCOM_STREAM_URL).catch(
+        (e) => {
+          deleteImage(intercomImagePath);
+          throw e;
+        }
+      );
+    }
+    if (gateImagePath) {
+      await sendTelegramAdminImage(gateImagePath, GATE_STREAM_URL).catch((e) => {
+        deleteImage(gateImagePath);
         throw e;
-      }
-    );
-    await sendTelegramAdminImage(gateImagePath, GATE_STREAM_URL).catch((e) => {
-      deleteImage(gateImagePath);
-      throw e;
-    });
+      });
+    }
   }
   await deleteImage(intercomImagePath);
   await deleteImage(gateImagePath);
