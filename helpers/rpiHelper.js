@@ -16,27 +16,27 @@ export async function setupPhysicalPins() {
   console.log('setupPhysicalPins');
   await gpiop
     .setup(EXTERNAL_SENSOR_SAMPLE_PIN, gpio.DIR_IN)
-    .catch((e) => console.warn(e)); // Open
-  await gpiop.setup(CYCLE_PIN, gpio.DIR_HIGH).catch((e) => console.warn(e)); // Cycle gate
+    .catch((e) => console.error(e)); // Open
+  await gpiop.setup(CYCLE_PIN, gpio.DIR_HIGH).catch((e) => console.error(e)); // Cycle gate
   await gpiop
     .setup(DISABLE_BUTTON_PIN, gpio.DIR_HIGH)
-    .catch((e) => console.warn(e)); // Disable button
-  await gpiop.setup(OPEN_PIN, gpio.DIR_HIGH).catch((e) => console.warn(e)); // Open gate
-  // await gpiop.setup(37, gpio.DIR_HIGH).catch(e => console.warn(e)); // Toggle internal sensor common
-  // await gpiop.setup(37, gpio.DIR_HIGH).catch(e => console.warn(e)); // Toggle internal sensor high
-  // cycleRelayDemo(PIN).catch(e => console.warn(e));
+    .catch((e) => console.error(e)); // Disable button
+  await gpiop.setup(OPEN_PIN, gpio.DIR_HIGH).catch((e) => console.error(e)); // Open gate
+  // await gpiop.setup(37, gpio.DIR_HIGH).catch(e => console.error(e)); // Toggle internal sensor common
+  // await gpiop.setup(37, gpio.DIR_HIGH).catch(e => console.error(e)); // Toggle internal sensor high
+  // cycleRelayDemo(PIN).catch(e => console.error(e));
 }
 
 export async function writeRPiPin({ pin, value }) {
   return gpiop
     .write(pin, value)
-    .catch((e) => console.log(`error setting pin ${pin}`, e));
+    .catch((e) => console.error(`error setting pin ${pin}`, e));
 }
 
 export async function readRPiPin(pin) {
   return await gpiop
     .read(pin)
-    .catch((e) => console.log(`error setting pin ${pin}`, e));
+    .catch((e) => console.error(`error setting pin ${pin}`, e));
 }
 
 export async function cycleRelayDemo(pin) {
@@ -90,7 +90,7 @@ export async function gitPull() {
       stderr
     ) {
       if (err) {
-        console.log(stderr);
+        console.error(stderr);
         rej(err);
       } else {
         console.log(stdout);
@@ -109,7 +109,7 @@ export async function pm2Restart() {
       stderr
     ) {
       if (err) {
-        console.log(stderr);
+        console.error(stderr);
         rej(err);
       } else {
         console.log(stdout);

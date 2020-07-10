@@ -20,7 +20,7 @@ async function init() {
   await setupPhysicalPins().catch((e) => killProcess(e));
   await setupBlynk().catch((e) => killProcess(e));
   await setupTelegram().catch((e) => {
-    console.log('setupTelegram err ', e);
+    console.error('setupTelegram err ', e);
     killProcess(e);
   });
   externalSensorPolling().catch((e) => killProcess(e));
@@ -61,14 +61,14 @@ async function externalSensorPolling() {
             if (extTriggerEnabled) {
               if (shouldNotifyOnExtTrigger) {
                 await sendTelegramGroupMessage(response).catch((e) =>
-                  console.log('err sendTelegramGroupMessage', e)
+                  console.error('err sendTelegramGroupMessage', e)
                 );
                 await camerasSnapshot().catch((e) =>
-                  console.log('err camerasSnapshot', e)
+                  console.error('err camerasSnapshot', e)
                 );
               } else {
                 await sendTelegramAdminMessage(response).catch((e) =>
-                  console.log(
+                  console.error(
                     'extTriggerEnabled',
                     extTriggerEnabled,
                     'err sendTelegramAdminMessage',
@@ -76,7 +76,7 @@ async function externalSensorPolling() {
                   )
                 );
                 await camerasSnapshot().catch((e) =>
-                  console.log(
+                  console.error(
                     'extTriggerEnabled',
                     extTriggerEnabled,
                     'err camerasSnapshot',
@@ -98,4 +98,4 @@ async function externalSensorPolling() {
   }
 }
 
-init().catch((e) => console.log('err in setup', e));
+init().catch((e) => console.error('err in setup', e));

@@ -55,7 +55,7 @@ export async function setupTelegram() {
     if (chat_id && (chat_id === MY_CHAT_ID || chat_id === GATE_GROUP_CHAT_ID))
       next();
     else if (chat_id)
-      console.warn(
+      console.error(
         `Telegram Message from unauthorized chat! Chat ID ${chat_id}`
       );
     else console.log('Message irrelevant to the bot');
@@ -73,7 +73,7 @@ export async function setupTelegram() {
       await downloadImage({
         url: INTERCOM_SNAPSHOT_URL,
         imageType: INTERCOM,
-      }).catch((e) => console.log('err in img download', e.code)) + '';
+      }).catch((e) => console.error('err in img download', e.code)) + '';
     if (imagePath) await ctx
       .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
       .catch((e) => {
@@ -90,7 +90,7 @@ export async function setupTelegram() {
       await downloadImage({
         url: GATE_SNAPSHOT_URL,
         imageType: GATE,
-      }).catch((e) => console.log('err in img download', e.code)) + '';
+      }).catch((e) => console.error('err in img download', e.code)) + '';
     if (imagePath) await ctx
       .replyWithPhoto({ source: imagePath }, { caption: GATE_STREAM_URL })
       .catch((e) => {

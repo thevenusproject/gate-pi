@@ -88,7 +88,7 @@ export async function setupBlynk() {
       // Runs the CLI command if the button on V10 is pressed
       // reboot - sudo /sbin/reboot
       exec("pm2 restart 'Gate Opener'", function (err, stdout, stderr) {
-        if (err) console.log(stderr);
+        if (err) console.error(stderr);
         else console.log(stdout);
       });
     }
@@ -100,7 +100,7 @@ export async function setupBlynk() {
       // Runs the CLI command if the button on V10 is pressed
       // reboot - sudo /sbin/reboot
       exec('sudo /sbin/reboot', function (err, stdout, stderr) {
-        if (err) console.log(stderr);
+        if (err) console.error(stderr);
         else console.log(stdout);
       });
     }
