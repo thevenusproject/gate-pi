@@ -94,7 +94,9 @@ export async function setupTelegram() {
     if (imagePath) await ctx
       .replyWithPhoto({ source: imagePath }, { caption: GATE_STREAM_URL })
       .catch((e) => {
-        deleteImage(imagePath);
+        try {
+          deleteImage(imagePath);
+        } catch (e) {}
         throw e;
       });
     else await ctx.reply('No Image')
