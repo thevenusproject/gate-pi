@@ -21,5 +21,9 @@ export async function downloadImage({ url, imageType = '' }) {
 }
 
 export async function deleteImage(imagePath) {
-  fs.unlinkSync(imagePath);
+  try {
+    fs.unlinkSync(imagePath);
+  } catch (e) {
+    console.error(e)
+  }
 }
