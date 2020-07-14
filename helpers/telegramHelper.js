@@ -6,7 +6,7 @@ import {
   unopenGate,
   cycleGate,
   gitPull,
-  pm2Restart,
+  pm2Restart, getTemperature, getCPUVoltage,
 } from './rpiHelper';
 import { deleteImage, downloadImage } from './cameraHelper';
 import {
@@ -163,6 +163,15 @@ export async function setupTelegram() {
     await pm2Restart().catch((e) => ctx.reply(e));
     await ctx.reply('Git pulled and pm2 restarted');
   });
+  telegraf.command('cpu_temperature', async (ctx) => {
+    const temp = await getTemperature();
+    await ctx.reply(temp);
+  });
+  telegraf.command('cpu_voltage', async (ctx) => {
+    const v = await getCPUVoltage();
+    await ctx.reply(v);
+  });
+
   let response = pickRandomFromArray([
     "I'm back online, how long was I out? Minutes? Days? Years???",
     'Reporting back online',

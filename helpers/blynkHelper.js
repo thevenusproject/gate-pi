@@ -116,7 +116,7 @@ export async function setupBlynk() {
     }
   });
   temperaturePin.on('read', async function () {
-    const temp = getTemperature();
+    const temp = await getTemperature();
     blynk.virtualWrite(8, temp);
   });
   cpuVoltagePin.on('read', async function () {
