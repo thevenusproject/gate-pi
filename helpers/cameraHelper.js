@@ -22,9 +22,11 @@ export async function downloadImage({ url, imageType = '' }) {
 
 export async function deleteImage(imagePath) {
   if (imagePath) {
-    console.log('imagePath', imagePath)
     try {
-      fs.unlinkSync(imagePath);
+      if (fs.existsSync(imagePath)) {
+        //file exists
+        fs.unlinkSync(imagePath);
+      }
     } catch (e) {
       console.error(e)
     }

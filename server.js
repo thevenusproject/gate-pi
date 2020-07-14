@@ -11,8 +11,8 @@ import {
   setupTelegram,
   sendTelegramGroupMessage,
   sendTelegramAdminMessage,
+  camerasSnapshot,
 } from './helpers/telegramHelper';
-import { camerasSnapshot } from './helpers/telegramHelper';
 import { killProcess, pickRandomFromArray } from './utils';
 import { setupBlynk } from './helpers/blynkHelper';
 

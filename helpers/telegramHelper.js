@@ -68,43 +68,8 @@ export async function setupTelegram() {
     await cycleGate();
     await ctx.reply('Gate cycling');
   });
-  telegraf.command('intercom_snapshot', async (ctx) => {
-    const imagePath =
-      (await downloadImage({
-        url: INTERCOM_SNAPSHOT_URL,
-        imageType: INTERCOM,
-      }).catch((e) => console.error('err in img download', e.code))) + '';
-    if (imagePath) {
-      await ctx
-        .replyWithPhoto({ source: imagePath }, { caption: INTERCOM_STREAM_URL })
-        .catch((e) => {
-          try {
-            deleteImage(imagePath);
-          } catch (e) {}
-          throw e;
-        });
-      await deleteImage(imagePath);
-    } else await ctx.reply('No Image');
-  });
-  telegraf.command('gate_snapshot', async (ctx) => {
-    const imagePath =
-      (await downloadImage({
-        url: GATE_SNAPSHOT_URL,
-        imageType: GATE,
-      }).catch((e) => console.error('err in img download', e.code))) + '';
-    if (imagePath) {
-      await ctx
-        .replyWithPhoto({ source: imagePath }, { caption: GATE_STREAM_URL })
-        .catch((e) => {
-          try {
-            deleteImage(imagePath);
-          } catch (e) {}
-          throw e;
-        });
-
-      await deleteImage(imagePath);
-    } else await ctx.reply('No Image');
-  });
+  telegraf.command('intercom_snapshot', async ctx => fetchImage(ctx, INTERCOM));
+  telegraf.command('gate_snapshot', async ctx => fetchImage(ctx, GATE));
   telegraf.command('notify_on_ext_trigger', async (ctx) => {
     const newValue = !getSetting({ setting: 'shouldNotifyOnExtTrigger' });
     await saveSetting({ setting: 'shouldNotifyOnExtTrigger', value: newValue });
@@ -182,15 +147,28 @@ export async function setupTelegram() {
   return telegraf.launch();
 }
 
+export async function fetchImage(ctx, imageType) {
+  const imagePath =
+    (await downloadImage({
+      url: imageType === INTERCOM ? INTERCOM_SNAPSHOT_URL : GATE_SNAPSHOT_URL,
+      imageType,
+    }).catch((e) => console.error('err in img download', e.code))) + '';
+  if (imagePath) {
+    await ctx
+      .replyWithPhoto({source: imagePath}, {caption: imageType === INTERCOM ? INTERCOM_STREAM_URL : GATE_STREAM_URL})
+      .catch((e) => deleteImage(imagePath));
+    await deleteImage(imagePath);
+  } else await ctx.reply('No Image');
+}
 export async function camerasSnapshot() {
   const intercomImagePath = await downloadImage({
     url: INTERCOM_SNAPSHOT_URL,
     imageType: INTERCOM,
-  }).catch((e) => console.warn('err getting intercom image', e));
+  }).catch((e) => console.warn('err getting intercom image', _.get(e, 'error')));
   const gateImagePath = await downloadImage({
     url: GATE_SNAPSHOT_URL,
     imageType: GATE,
-  }).catch((e) => console.warn('err getting gate image', e));
+  }).catch((e) => console.warn('err getting gate image', _.get(e, 'error')));
   if (getSetting({ setting: 'shouldNotifyOnExtTrigger' })) {
     if (intercomImagePath)
       await sendTelegramGroupImage(
