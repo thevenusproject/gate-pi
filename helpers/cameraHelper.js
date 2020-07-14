@@ -1,6 +1,6 @@
 import Path from 'path';
 import fs from 'fs';
-import axios from 'axios';
+import {axiosCustom as axios} from './networkHelper';
 
 export async function downloadImage({ url, imageType = '' }) {
   // const path = `${__dirname}/photos/${Date.now()}.jpg`;
