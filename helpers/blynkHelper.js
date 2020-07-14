@@ -7,7 +7,7 @@ import {
   OPEN_PIN,
   readRPiPin,
   gitPull,
-  pm2Restart,
+  pm2Restart, getCPUVoltage, getTemperature,
 } from './rpiHelper';
 import { exec } from 'child_process';
 import { saveSetting, getSetting } from '../store';
@@ -36,24 +36,26 @@ export async function setupBlynk() {
   const v5 = new blynk.VirtualPin(5); //  shouldNotifyOnExtTrigger
   const v6 = new blynk.VirtualPin(6); //  extTriggerEnabled
   const v7 = new blynk.VirtualPin(7); //  keep gate open
+  const temperaturePin = new blynk.VirtualPin(8); //  keep gate open
+  const cpuVoltagePin = new blynk.VirtualPin(9); //  keep gate open
   const blynkGateOpenerRestart = new blynk.VirtualPin(20); // Setup Reboot Button
   const blynkGateOpenerReboot = new blynk.VirtualPin(21); // Setup Reboot Button
   const blynkGitPullRestart = new blynk.VirtualPin(22); // Setup Reboot Button
   v1.on('write', async function (params) {
     // Cycle gate
-    writePinFromBlynk({ pin: CYCLE_PIN, params });
+    writeGpioPinFromBlynk({ pin: CYCLE_PIN, params });
   });
   v2.on('write', async function (params) {
     // Disable button
-    writePinFromBlynk({ pin: DISABLE_BUTTON_PIN, params });
+    writeGpioPinFromBlynk({ pin: DISABLE_BUTTON_PIN, params });
   });
   v3.on('write', async function (params) {
     // Open gate
-    writePinFromBlynk({ pin: OPEN_PIN, params });
+    writeGpioPinFromBlynk({ pin: OPEN_PIN, params });
   });
   v4.on('read', async function () {
     // read external sensor
-    readPinFromBlynk({
+    readPinFromGpioToBlynk({
       gpioPin: EXTERNAL_SENSOR_SAMPLE_PIN,
       blynkPin: 4,
     }).catch();
@@ -71,7 +73,7 @@ export async function setupBlynk() {
   });
   v6.on('read', async function (params) {
     // read extTriggerEnabled
-    blynk.virtualWrite(5, getSetting({ setting: 'extTriggerEnabled' }));
+    blynk.virtualWrite(6, getSetting({ setting: 'extTriggerEnabled' }));
   });
   v6.on('write', async function (params) {
     // write extTriggerEnabled
@@ -87,7 +89,7 @@ export async function setupBlynk() {
     if (_.get(params, '[0]') !== '0') {
       // Runs the CLI command if the button on V10 is pressed
       // reboot - sudo /sbin/reboot
-      exec("pm2 restart 'Gate Opener'", function (err, stdout, stderr) {
+      exec("pm2 restart 'GateOpener'", function (err, stdout, stderr) {
         if (err) console.error(stderr);
         else console.log(stdout);
       });
@@ -113,15 +115,23 @@ export async function setupBlynk() {
       await pm2Restart();
     }
   });
+  temperaturePin.on('read', async function () {
+    const temp = getTemperature();
+    blynk.virtualWrite(8, temp);
+  });
+  cpuVoltagePin.on('read', async function () {
+    const voltage = await getCPUVoltage();
+    blynk.virtualWrite(9, voltage);
+  });
 }
 
-function writePinFromBlynk({ pin, params }) {
-  console.log('writePinFromBlynk', params);
+function writeGpioPinFromBlynk({ pin, params }) {
+  console.log('writeGpioPinFromBlynk', params);
   const value = _.get(params, '[0]') !== '1';
   writeRPiPin({ pin, value }).catch();
 }
 
-async function readPinFromBlynk({ gpioPin, blynkPin }) {
+async function readPinFromGpioToBlynk({ gpioPin, blynkPin }) {
   const value = await readRPiPin(gpioPin);
   blynk.virtualWrite(blynkPin, value);
 }

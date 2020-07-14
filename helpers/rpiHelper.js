@@ -118,3 +118,41 @@ export async function pm2Restart() {
     });
   });
 }
+
+export async function getTemperature() {
+  console.log('getTemperature');
+  return new Promise((res, rej) => {
+    exec('/usr/bin/vcgencmd measure_temp', function (
+      err,
+      stdout,
+      stderr
+    ) {
+      if (err) {
+        console.error(stderr);
+        rej(err);
+      } else {
+        console.log(stdout);
+        res(stdout);
+      }
+    });
+  });
+}
+
+export async function getCPUVoltage() {
+  console.log('getCPUVoltage');
+  return new Promise((res, rej) => {
+    exec('/usr/bin/vcgencmd measure_volts core', function (
+      err,
+      stdout,
+      stderr
+    ) {
+      if (err) {
+        console.error(stderr);
+        rej(err);
+      } else {
+        console.log(stdout);
+        res(stdout);
+      }
+    });
+  });
+}

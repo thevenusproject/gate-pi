@@ -30,6 +30,8 @@ async function externalSensorPolling() {
   const TIME_STEP = 0.5; // seconds
   const COUNT_TRIGGER = 1;
   const COOL_DOWN_TIME = 120; // seconds
+  const SPAM_THRESHOLD = 3; // Notifications
+  let spamCounter = 0;
   let triggerCounter = 0;
   let coolDownNotificationsCounter = 0;
   while (true) {
@@ -57,7 +59,7 @@ async function externalSensorPolling() {
           //   response =
           //     "External sensor. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus";
           if (coolDownNotificationsCounter <= 0) {
-            coolDownNotificationsCounter = 120;
+            coolDownNotificationsCounter = _.floor(COOL_DOWN_TIME / TIME_STEP);
             if (extTriggerEnabled) {
               if (shouldNotifyOnExtTrigger) {
                 await sendTelegramGroupMessage(response).catch((e) =>
