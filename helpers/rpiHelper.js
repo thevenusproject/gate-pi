@@ -84,7 +84,7 @@ export async function sleep(ms) {
 export async function gitPull() {
   console.log('gitPull');
   return new Promise((res, rej) => {
-    exec('/usr/bin/git -C /root/dev/gate-pi pull', function (
+    exec('/usr/bin/git -C /home/pi/dev/gate-pi pull', function (
       err,
       stdout,
       stderr
