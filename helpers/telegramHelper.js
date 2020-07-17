@@ -47,6 +47,9 @@ export async function sendTelegramAdminImage(imagePath, caption) {
 }
 
 export async function setupTelegram() {
+  telegraf.catch((err, ctx) => {
+    console.log(`Telegraf err for ${ctx.updateType}`, err)
+  })
   telegraf.start((ctx) => {
     ctx.reply('Welcome!');
   });
