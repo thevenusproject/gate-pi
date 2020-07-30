@@ -63,6 +63,7 @@ export async function cycleGate() {
 export async function openGateTemporarily() {
   if (!getSetting({ setting: 'keepOpen' }))
     return momentaryRelaySet({ pin: OPEN_PIN, value: false });
+  else return openGate()
 }
 
 export async function openGate() {
