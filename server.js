@@ -15,6 +15,7 @@ import {
 } from './helpers/telegramHelper';
 import { killProcess, pickRandomFromArray } from './utils';
 import { setupBlynk } from './helpers/blynkHelper';
+import {fetchCalendarAvailability, isCalendarBusy} from "./helpers/calendarHelper";
 
 async function init() {
   await setupPhysicalPins().catch((e) => killProcess(e));
@@ -23,6 +24,7 @@ async function init() {
     console.error('setupTelegram err ', e);
     killProcess(e);
   });
+  fetchCalendarAvailability().catch(e => console.log('fetchCalendarAvailability err', e));
   externalSensorPolling().catch((e) => killProcess(e));
 }
 
@@ -47,7 +49,7 @@ async function externalSensorPolling() {
         // console.log("Ext. sensor triggered. Opening gate");
         triggerCounter = 0;
         if (extTriggerEnabled) {
-          await openGateTemporarily();
+          if (isCalendarBusy()) openGateTemporarily().catch(e => console.error('openGateTemporarily err', e));
           const day = new Date().getDay();
           let response = pickRandomFromArray([
             'External sensor. Opening gate',
