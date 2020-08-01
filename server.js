@@ -49,7 +49,7 @@ async function externalSensorPolling() {
         // console.log("Ext. sensor triggered. Opening gate");
         triggerCounter = 0;
         if (extTriggerEnabled) {
-          if (isCalendarBusy()) openGateTemporarily().catch(e => console.error('openGateTemporarily err', e));
+          if (!isCalendarBusy()) openGateTemporarily().catch(e => console.error('openGateTemporarily err', e));
           const day = new Date().getDay();
           let response = pickRandomFromArray([
             'External sensor. Opening gate',
