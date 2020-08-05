@@ -87,6 +87,7 @@ async function externalSensorPolling() {
                     e
                   )
                 );
+                fetchCalendarAvailability().catch(e => console.error('fetchCalendarAvailability err', e));
               }
             }
           }

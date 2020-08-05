@@ -22,6 +22,7 @@ import {
 } from '../constants';
 import { saveSetting, getSetting } from '../store';
 import { pickRandomFromArray } from '../utils';
+import {fetchCalendarAvailability} from "./calendarHelper"
 
 const telegraf = new Telegraf(TELEGRAM_TOKEN); // required for replying to messages
 const telegram = new Telegram(TELEGRAM_TOKEN); // required for initiating conversation
@@ -133,11 +134,16 @@ export async function setupTelegram() {
   });
   telegraf.command('cpu_temperature', async (ctx) => {
     const temp = await getTemperature();
-    await ctx.reply(temp);
+    await ctx.reply(temp || '');
   });
   telegraf.command('cpu_voltage', async (ctx) => {
     const v = await getCPUVoltage();
-    await ctx.reply(v);
+    await ctx.reply(v || '');
+  });
+  telegraf.command('sync_calendar', async (ctx) => {
+    const res = await fetchCalendarAvailability().catch(e => console.error('fetchCalendarAvailability err', e));
+    if (res) await ctx.reply('Calendar synced');
+    else await ctx.reply('Calendar sync failed');
   });
 
   let response = pickRandomFromArray([

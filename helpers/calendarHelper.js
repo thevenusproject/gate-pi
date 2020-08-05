@@ -27,7 +27,7 @@ export async function fetchCalendarAvailability() {
     console.log(e)
   })
   busyTimeslots = _.get(res, `data.calendars['${GOOGLE_CALENDAR_ID}'].busy`) || busyTimeslots;
-
+  return true
   // [ { start: '2020-08-01T03:14:27Z', end: '2020-08-01T05:15:00Z' } ]
 }
 
