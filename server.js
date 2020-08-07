@@ -104,9 +104,5 @@ async function externalSensorPolling() {
   }
 }
 
-// init().catch((e) => console.error('err in setup', e));
-async function test() {
-  await fetchCalendarAvailability()
-  console.log('isCalendarBusy', await isCalendarBusy())
-}
-test()
+init().catch((e) => console.error('err in setup', e));
+
