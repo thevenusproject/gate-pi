@@ -49,8 +49,8 @@ async function externalSensorPolling() {
         // console.log("Ext. sensor triggered. Opening gate");
         triggerCounter = 0;
         if (extTriggerEnabled) {
-          if (!isCalendarBusy()) openGateTemporarily().catch(e => console.error('openGateTemporarily err', e));
-          else console.log('calendar busy, not opening gate', )
+          if (!isCalendarBusy()) await openGateTemporarily().catch(e => console.error('openGateTemporarily err', e));
+          else console.log('calendar busy, not opening gate')
           const day = new Date().getDay();
           let response = pickRandomFromArray([
             'External sensor. Opening gate',
@@ -64,6 +64,7 @@ async function externalSensorPolling() {
           if (coolDownNotificationsCounter <= 0) {
             coolDownNotificationsCounter = _.floor(COOL_DOWN_TIME / TIME_STEP);
             if (extTriggerEnabled) {
+              console.log('Sending notification')
               if (shouldNotifyOnExtTrigger) {
                 await sendTelegramGroupMessage(response).catch((e) =>
                   console.error('err sendTelegramGroupMessage', e)
@@ -105,4 +106,3 @@ async function externalSensorPolling() {
 }
 
 init().catch((e) => console.error('err in setup', e));
-
