@@ -37,7 +37,6 @@ async function externalSensorPolling() {
   let triggerCounter = 0;
   let coolDownNotificationsCounter = 0;
   while (true) {
-    await sleep(TIME_STEP * 1000);
     const sensorIsBlocked = await sampleExternalSensor();
     if (sensorIsBlocked) {
       // console.log("Ext. sensor triggered. counter ", triggerCounter);
@@ -94,6 +93,7 @@ async function externalSensorPolling() {
             }
           }
         }
+        await sleep(TIME_STEP * 1000);
         // console.log('coolDownNotificationsCounter', coolDownNotificationsCounter)
       } else {
         triggerCounter += 1;
