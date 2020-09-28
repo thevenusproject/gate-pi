@@ -93,12 +93,12 @@ async function externalSensorPolling() {
             }
           }
         }
-        await sleep(TIME_STEP * 1000);
         // console.log('coolDownNotificationsCounter', coolDownNotificationsCounter)
       } else {
         triggerCounter += 1;
       }
     }
+    await sleep(TIME_STEP * 1000);
     if (coolDownNotificationsCounter > 0) {
       --coolDownNotificationsCounter;
     }
