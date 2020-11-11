@@ -19,7 +19,7 @@ import {fetchCalendarAvailability, isCalendarBusy} from "./helpers/calendarHelpe
 
 async function init() {
   await setupPhysicalPins().catch((e) => killProcess(e));
-  await setupBlynk().catch((e) => killProcess(e));
+  // await setupBlynk().catch((e) => killProcess(e));
   await setupTelegram().catch((e) => {
     console.error('setupTelegram err ', e);
     killProcess(e);
