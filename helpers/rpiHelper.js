@@ -53,7 +53,7 @@ export async function cycleRelayDemo(pin) {
 export async function momentaryRelaySet({ value, pin }) {
   console.log('Opening gate temporarily')
   await writeRPiPin({ pin, value: !!value });
-  await sleep(500);
+  await sleep(2000);
   await writeRPiPin({ pin, value: !value });
 }
 
