@@ -91,9 +91,9 @@ async function externalSensorPolling() {
                 fetchCalendarAvailability().catch(e => console.error('fetchCalendarAvailability err', e));
               }
             }
-          }
+          } else console.log('coolDownNotificationsCounter', coolDownNotificationsCounter, 'triggerCounter',triggerCounter)
         }
-        console.log('coolDownNotificationsCounter', coolDownNotificationsCounter, 'triggerCounter',triggerCounter)
+        // console.log('coolDownNotificationsCounter', coolDownNotificationsCounter, 'triggerCounter',triggerCounter)
       } else {
         triggerCounter += 1;
       }
