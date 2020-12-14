@@ -93,7 +93,7 @@ async function externalSensorPolling() {
             }
           }
         }
-        // console.log('coolDownNotificationsCounter', coolDownNotificationsCounter)
+        console.log('coolDownNotificationsCounter', coolDownNotificationsCounter, 'triggerCounter',triggerCounter)
       } else {
         triggerCounter += 1;
       }
