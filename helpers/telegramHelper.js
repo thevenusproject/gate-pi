@@ -173,11 +173,11 @@ export async function camerasSnapshot() {
   const intercomImagePath = await downloadImage({
     url: INTERCOM_SNAPSHOT_URL,
     imageType: INTERCOM,
-  }).catch((e) => console.warn('err getting intercom image', _.get(e, 'error')));
+  }).catch((e) => console.warn('err getting intercom image', _.get(e, 'error') || e));
   const gateImagePath = await downloadImage({
     url: GATE_SNAPSHOT_URL,
-    imageType: GATE,
-  }).catch((e) => console.warn('err getting gate image', _.get(e, 'error')));
+    imageType: GATE
+  }).catch((e) => console.warn('err getting gate image', _.get(e, 'error') || e));
   if (getSetting({ setting: 'shouldNotifyOnExtTrigger' })) {
     if (intercomImagePath)
       await sendTelegramGroupImage(
