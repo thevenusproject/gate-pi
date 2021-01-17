@@ -1,5 +1,6 @@
 import _ from 'lodash';
-import { initStore, getSetting } from './store';
+import {initStore, getSetting} from './store';
+
 initStore();
 import {
   sampleExternalSensor,
@@ -13,8 +14,8 @@ import {
   sendTelegramAdminMessage,
   camerasSnapshot,
 } from './helpers/telegramHelper';
-import { killProcess, pickRandomFromArray } from './utils';
-import { setupBlynk } from './helpers/blynkHelper';
+import {killProcess, pickRandomFromArray} from './utils';
+import {setupBlynk} from './helpers/blynkHelper';
 import {fetchCalendarAvailability, isCalendarBusy} from "./helpers/calendarHelper";
 
 async function init() {
@@ -41,14 +42,14 @@ async function externalSensorPolling() {
     if (sensorIsBlocked) {
       // console.log("Ext. sensor triggered. counter ", triggerCounter);
       if (triggerCounter >= COUNT_TRIGGER) {
-        const extTriggerEnabled = getSetting({ setting: 'extTriggerEnabled' });
+        const extTriggerEnabled = getSetting({setting: 'extTriggerEnabled'});
         const shouldNotifyOnExtTrigger = getSetting({
           setting: 'shouldNotifyOnExtTrigger',
         });
         // console.log("Ext. sensor triggered. Opening gate");
         triggerCounter = 0;
-        if (extTriggerEnabled) {
-          if (!isCalendarBusy()) await openGateTemporarily().catch(e => console.error('openGateTemporarily err', e));
+        if (extTriggerEnabled || shouldNotifyOnExtTrigger) {
+          if (!isCalendarBusy() && extTriggerEnabled) await openGateTemporarily().catch(e => console.error('openGateTemporarily err', e));
           else console.log('calendar busy, not opening gate')
           const day = new Date().getDay();
           let response = pickRandomFromArray([
@@ -62,36 +63,34 @@ async function externalSensorPolling() {
           //     "External sensor. It could have been a Saturday tour! If not for this virus.. I'll spin up my antivirus";
           if (coolDownNotificationsCounter <= 0) {
             coolDownNotificationsCounter = _.floor(COOL_DOWN_TIME / TIME_STEP);
-            if (extTriggerEnabled) {
-              console.log('Sending notification')
-              if (shouldNotifyOnExtTrigger) {
-                await sendTelegramGroupMessage(response).catch((e) =>
-                  console.error('err sendTelegramGroupMessage', e)
-                );
-                await camerasSnapshot().catch((e) =>
-                  console.error('err camerasSnapshot', e)
-                );
-              } else {
-                await sendTelegramAdminMessage(response).catch((e) =>
-                  console.error(
-                    'extTriggerEnabled',
-                    extTriggerEnabled,
-                    'err sendTelegramAdminMessage',
-                    e
-                  )
-                );
-                await camerasSnapshot().catch((e) =>
-                  console.error(
-                    'extTriggerEnabled',
-                    extTriggerEnabled,
-                    'err camerasSnapshot',
-                    e
-                  )
-                );
-                fetchCalendarAvailability().catch(e => console.error('fetchCalendarAvailability err', e));
-              }
+            if (shouldNotifyOnExtTrigger) {
+              await sendTelegramGroupMessage(response).catch((e) =>
+                console.error('err sendTelegramGroupMessage', e)
+              );
+              await camerasSnapshot().catch((e) =>
+                console.error('err camerasSnapshot', e)
+              );
             }
-          } else console.log('coolDownNotificationsCounter', coolDownNotificationsCounter, 'triggerCounter',triggerCounter)
+            // else {
+            //   await sendTelegramAdminMessage(response).catch((e) =>
+            //     console.error(
+            //       'extTriggerEnabled',
+            //       extTriggerEnabled,
+            //       'err sendTelegramAdminMessage',
+            //       e
+            //     )
+            //   );
+            //   await camerasSnapshot().catch((e) =>
+            //     console.error(
+            //       'extTriggerEnabled',
+            //       extTriggerEnabled,
+            //       'err camerasSnapshot',
+            //       e
+            //     )
+            //   );
+            //   fetchCalendarAvailability().catch(e => console.error('fetchCalendarAvailability err', e));
+            // }
+          } else console.log('coolDownNotificationsCounter', coolDownNotificationsCounter, 'triggerCounter', triggerCounter)
         }
         // console.log('coolDownNotificationsCounter', coolDownNotificationsCounter, 'triggerCounter',triggerCounter)
       } else {
