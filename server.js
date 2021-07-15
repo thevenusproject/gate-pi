@@ -22,8 +22,8 @@ async function init() {
   await setupPhysicalPins().catch((e) => killProcess(e));
   // await setupBlynk().catch((e) => killProcess(e));
   await setupTelegram().catch((e) => {
-    console.error('setupTelegram err ', e);
-    killProcess(e);
+    // console.error('setupTelegram err ', e);
+    // killProcess(e);
   });
   fetchCalendarAvailability().catch(e => console.log('fetchCalendarAvailability err', e));
   externalSensorPolling().catch((e) => killProcess(e));
