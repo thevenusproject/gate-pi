@@ -174,10 +174,10 @@ export async function camerasSnapshot() {
     url: INTERCOM_SNAPSHOT_URL,
     imageType: INTERCOM,
   }).catch((e) => console.warn('err getting intercom image', _.get(e, 'error') || e));
-  const gateImagePath = await downloadImage({
-    url: GATE_SNAPSHOT_URL,
-    imageType: GATE
-  }).catch((e) => console.warn('err getting gate image', _.get(e, 'error') || e));
+  // const gateImagePath = await downloadImage({
+  //   url: GATE_SNAPSHOT_URL,
+  //   imageType: GATE
+  // }).catch((e) => console.warn('err getting gate image', _.get(e, 'error') || e));
   if (getSetting({ setting: 'shouldNotifyOnExtTrigger' })) {
     if (intercomImagePath)
       await sendTelegramGroupImage(
@@ -186,13 +186,13 @@ export async function camerasSnapshot() {
       ).catch((e) => {
         throw e;
       });
-    if (gateImagePath)
-      await sendTelegramGroupImage(gateImagePath, GATE_STREAM_URL).catch(
-        (e) => {
-          deleteImage(gateImagePath);
-          throw e;
-        }
-      );
+    // if (gateImagePath)
+    //   await sendTelegramGroupImage(gateImagePath, GATE_STREAM_URL).catch(
+    //     (e) => {
+    //       deleteImage(gateImagePath);
+    //       throw e;
+    //     }
+    //   );
   } else {
     if (intercomImagePath) {
       await sendTelegramAdminImage(intercomImagePath, INTERCOM_STREAM_URL).catch(
@@ -202,13 +202,13 @@ export async function camerasSnapshot() {
         }
       );
     }
-    if (gateImagePath) {
-      await sendTelegramAdminImage(gateImagePath, GATE_STREAM_URL).catch((e) => {
-        deleteImage(gateImagePath);
-        throw e;
-      });
-    }
+    // if (gateImagePath) {
+    //   await sendTelegramAdminImage(gateImagePath, GATE_STREAM_URL).catch((e) => {
+    //     deleteImage(gateImagePath);
+    //     throw e;
+    //   });
+    // }
   }
   await deleteImage(intercomImagePath);
-  await deleteImage(gateImagePath);
+  // await deleteImage(gateImagePath);
 }
