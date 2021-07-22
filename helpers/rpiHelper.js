@@ -62,16 +62,19 @@ export async function cycleGate() {
 }
 
 export async function openGateTemporarily() {
-  if (!getSetting({ setting: 'keepOpen' }))
+  console.log('Opening gate temporarily')
+  if (getSetting({ setting: 'keepOpen' }) !== true)
     await momentaryRelaySet({ pin: OPEN_PIN, value: false });
   else await openGate()
 }
 
 export async function openGate() {
+  console.log('Opening gate indefinitely')
   await writeRPiPin({ pin: OPEN_PIN, value: false });
 }
 
 export async function unopenGate() {
+  console.log('Unopening gate')
   await writeRPiPin({ pin: OPEN_PIN, value: true });
 }
 

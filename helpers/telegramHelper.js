@@ -91,7 +91,9 @@ export async function setupTelegram() {
     );
   });
   telegraf.command('toggle_keep_open', async (ctx) => {
-    const newValue = !getSetting({ setting: 'keepOpen' });
+    const curValue = getSetting({ setting: 'keepOpen' });
+    if (curValue !== false && curValue !== true) return console.error('curValue in toggle_keep_open command is invalid', curValue);
+    const newValue = !curValue;
     await saveSetting({ setting: 'keepOpen', value: newValue }).catch(() =>
       ctx.reply('failed saving setting keepOpen')
     );
