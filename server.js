@@ -6,7 +6,7 @@ import {
   sampleExternalSensor,
   setupPhysicalPins,
   sleep,
-  openGateTemporarily,
+  openGateTemporarily, getTemperature, getCPUVoltage,
 } from './helpers/rpiHelper';
 import {
   setupTelegram,
@@ -26,14 +26,21 @@ async function init() {
     // killProcess(e);
   });
   fetchCalendarAvailability().catch(e => console.log('fetchCalendarAvailability err', e));
-  externalSensorPolling().catch((e) => killProcess(e));
+  externalSensorPolling().catch((e) => {
+    console.error('externalSensorPolling err ', e);
+    // killProcess(e)
+  });
+  loadTempAndVoltage().catch((e) => {
+    console.error('externalSensorPolling err ', e);
+    // killProcess(e)
+  });
 }
 
+const TIME_STEP = 0.5; // seconds
+const COUNT_TRIGGER = 1;
+const COOL_DOWN_TIME = 120; // seconds
+const SPAM_THRESHOLD = 3; // Notifications
 async function externalSensorPolling() {
-  const TIME_STEP = 0.5; // seconds
-  const COUNT_TRIGGER = 1;
-  const COOL_DOWN_TIME = 120; // seconds
-  const SPAM_THRESHOLD = 3; // Notifications
   let spamCounter = 0;
   let triggerCounter = 0;
   let coolDownNotificationsCounter = 0;
@@ -101,6 +108,15 @@ async function externalSensorPolling() {
     if (coolDownNotificationsCounter > 0) {
       --coolDownNotificationsCounter;
     }
+  }
+}
+
+async function loadTempAndVoltage() {
+  while (true) {
+    await sleep(60000);
+    const temp = await getTemperature();
+    const volt = await getCPUVoltage();
+    await sendTelegramAdminMessage(`CPU temperature - ${temp} \nCPU voltage - ${volt}`)
   }
 }
 
