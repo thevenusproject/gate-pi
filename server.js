@@ -113,7 +113,7 @@ async function externalSensorPolling() {
 
 async function loadTempAndVoltage() {
   while (true) {
-    await sleep(60000);
+    await sleep(600000);
     const temp = await getTemperature();
     const volt = await getCPUVoltage();
     await sendTelegramAdminMessage(`CPU temperature - ${temp} \nCPU voltage - ${volt}`)
