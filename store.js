@@ -15,7 +15,7 @@ export function initStore() {
 
 export function getSetting({ setting }) {
   const sett = nconf.get(`settings:${setting}`);
-  if (sett !== true && sett !== false) console.error('invalid sett', sett)
+  if (sett !== true && sett !== false) console.error('invalid sett', sett, typeof sett)
   return sett;
 }
 
