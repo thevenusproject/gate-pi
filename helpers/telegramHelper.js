@@ -94,7 +94,7 @@ export async function setupTelegram() {
     const curValue = getSetting({ setting: 'keepOpen' });
     if (curValue !== false && curValue !== true) return console.error('curValue in toggle_keep_open command is invalid', curValue, typeof curValue);
     const newValue = !curValue;
-    await saveSetting({ setting: 'keepOpen', value: newValue }).catch(() =>
+    await saveSetting({ setting: 'keepOpen', value: !!newValue }).catch(() =>
       ctx.reply('failed saving setting keepOpen')
     );
     if (!!newValue) openGate().catch();
